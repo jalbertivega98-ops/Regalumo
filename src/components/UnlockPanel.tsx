@@ -11,10 +11,12 @@ interface Props {
   /** Crea el proyecto si aún no existe (p. ej. escape room) y devuelve id y token. */
   ensureProject?: () => Promise<{ id: string; token: string }>;
   disabledReason?: string;
+  /** Guarda los cambios pendientes antes de ir al pago, para que el PDF lleve lo último. */
+  beforePay?: () => Promise<void>;
 }
 
 /** Panel de compra: muestra qué es gratis y qué incluye el pago, y lleva a Stripe Checkout. */
-export function UnlockPanel({ product, projectId, token, ensureProject, disabledReason }: Props) {
+export function UnlockPanel({ product, projectId, token, ensureProject, disabledReason, beforePay }: Props) {
   const info = PRODUCTS[product];
   const [prices, setPrices] = useState<{ single: number; pack: number } | null>(null);
   const [emails, setEmails] = useState(false);
@@ -60,6 +62,7 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
     setBusy(true);
     try {
       const p = await ids();
+      await beforePay?.();
       const r = await api<{ url: string }>("/api/checkout", {
         method: "POST",
         token: p.token,
@@ -78,6 +81,7 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
     setError("");
     try {
       const p = await ids();
+      await beforePay?.();
       await api(`/api/orders/${pack.orderId}/redeem`, { method: "POST", token: p.token, body: JSON.stringify({ k: pack.k, projectId: p.id }) });
       window.location.href = `/pedido/${pack.orderId}?k=${encodeURIComponent(pack.k)}`;
     } catch (e) {
@@ -90,24 +94,14 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
 
   return (
     <section className="card p-5 sm:p-6" aria-labelledby="unlock-title">
-      <h2 id="unlock-title" className="font-display text-2xl font-bold">Desbloquea tu regalo completo</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
-        <div className="rounded-2xl bg-shell p-4">
-          <p className="font-bold mb-2">Gratis, ahora mismo</p>
-          <ul className="space-y-1.5">
-            {info.free.map((f) => (
-              <li key={f} className="flex gap-2"><span aria-hidden>✓</span>{f}</li>
-            ))}
-          </ul>
-        </div>
-        <div className="rounded-2xl bg-ink text-white p-4">
-          <p className="font-bold mb-2">Al pagar {price !== null && sku === "single" ? eur(price) : ""}</p>
-          <ul className="space-y-1.5">
-            {info.paid.map((f) => (
-              <li key={f} className="flex gap-2"><span aria-hidden className="text-sun">★</span>{f}</li>
-            ))}
-          </ul>
-        </div>
+      <h2 id="unlock-title" className="font-display text-2xl font-bold">¿Te gusta? Descárgalo completo</h2>
+      <div className="mt-4 rounded-2xl bg-ink p-4 text-sm text-white">
+        <p className="mb-2 font-bold">Al pagar {price !== null && sku === "single" ? eur(price) : ""}</p>
+        <ul className="space-y-1.5">
+          {info.paid.map((f) => (
+            <li key={f} className="flex gap-2"><span aria-hidden className="text-sun">★</span>{f}</li>
+          ))}
+        </ul>
       </div>
 
       {pack && (
@@ -140,14 +134,17 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
           <label className="label" htmlFor="unlock-email">{emails ? "Correo para recibir el enlace (opcional)" : "Tu correo (opcional, por si necesitas ayuda con el pedido)"}</label>
           <input id="unlock-email" type="email" className="field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" autoComplete="email" />
         </div>
+        <details className="self-end" open={!!promo}>
+          <summary className="cursor-pointer list-none py-3 text-sm font-semibold underline">¿Tienes un código promocional?</summary>
         <div>
-          <label className="label" htmlFor="unlock-promo">Código promocional</label>
+          <label className="sr-only" htmlFor="unlock-promo">Código promocional</label>
           <div className="flex gap-2">
             <input id="unlock-promo" className="field" value={promo} onChange={(e) => setPromo(e.target.value)} placeholder="Opcional" />
             <button type="button" className="btn btn-ghost !py-2" onClick={applyPromo}>Aplicar</button>
           </div>
           {promoInfo && <p className="hint mt-1">{promoInfo}</p>}
         </div>
+        </details>
       </div>
 
       <label className="mt-4 flex gap-3 text-sm items-start">

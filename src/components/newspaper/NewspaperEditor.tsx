@@ -37,8 +37,14 @@ export function NewspaperEditor() {
   const [saving, setSaving] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(0);
-  const [tab, setTab] = useState<"edit" | "preview">("edit");
+  const [more, setMore] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
+  const replaceId = useRef<string | null>(null);
+  const pendingSave = useRef<(() => Promise<void>) | null>(null);
+  const flushSave = async () => {
+    clearTimeout(saveTimer.current);
+    await pendingSave.current?.();
+  };
   const saveTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // Arranque rápido
@@ -69,15 +75,19 @@ export function NewspaperEditor() {
       if (!project || project.status === "paid") return;
       clearTimeout(saveTimer.current);
       setSaving("saving");
-      saveTimer.current = setTimeout(async () => {
+      const run = async () => {
+        pendingSave.current = null;
         try {
           await api(`/api/projects/${project.id}`, { method: "PUT", token, body: JSON.stringify({ data: next }) });
           setSaving("saved");
         } catch (e) {
           setSaving("error");
           setError((e as Error).message);
+          throw e;
         }
-      }, 700);
+      };
+      pendingSave.current = run;
+      saveTimer.current = setTimeout(() => run().catch(() => {}), 700);
     },
     [project, token],
   );
@@ -119,7 +129,9 @@ export function NewspaperEditor() {
   async function upload(files: FileList | null) {
     if (!files || !project) return;
     setError("");
-    const room = LIMITS.photos - data.photos.length;
+    const replacing = replaceId.current;
+    replaceId.current = null;
+    const room = replacing ? 1 : LIMITS.photos - data.photos.length;
     const list = Array.from(files).slice(0, Math.max(0, room));
     if (!list.length) return setError(`Máximo ${LIMITS.photos} fotos. Borra alguna para añadir otra.`);
     for (const f of list) {
@@ -130,10 +142,14 @@ export function NewspaperEditor() {
         const r = await api<{ photoId: string; project: ProjectDto }>(`/api/projects/${project.id}/photos`, { method: "POST", token, body: fd });
         setProject((p) => (p ? { ...p, photos: r.project.photos } : p));
         setData((d) => {
-          const next = { ...d, photos: [...d.photos, { id: r.photoId, caption: "" }].slice(0, LIMITS.photos) };
+          const photos = replacing
+            ? [{ id: r.photoId, caption: "" }, ...d.photos.filter((x) => x.id !== replacing)]
+            : [...d.photos, { id: r.photoId, caption: "" }];
+          const next = { ...d, photos: photos.slice(0, LIMITS.photos) };
           persist(next);
           return next;
         });
+        if (replacing) api(`/api/projects/${project.id}/photos/${replacing}`, { method: "DELETE", token }).catch(() => {});
       } catch (e) {
         setError((e as Error).message);
       } finally {
@@ -163,7 +179,7 @@ export function NewspaperEditor() {
       <div className="mx-auto max-w-xl px-4 py-10">
         <p className="font-semibold text-coral">Periódico personalizado · prueba gratuita</p>
         <h1 className="font-display text-4xl font-black mt-1">¿A quién vamos a sacar en portada?</h1>
-        <p className="mt-3 text-ink-soft">Rellena tres datos y verás tu portada al instante. Sin registro y sin tarjeta.</p>
+        <p className="mt-3 text-ink-soft">Escribe su nombre, elige la ocasión y verás tu portada al instante. Sin registro y sin tarjeta.</p>
         {error && <p role="alert" className="mt-4 rounded-xl bg-coral/10 p-3 text-sm font-semibold text-coral-dark">{error}</p>}
         <form onSubmit={create} className="card mt-6 space-y-4 p-5">
           <div>
@@ -186,17 +202,6 @@ export function NewspaperEditor() {
               <input id="age" inputMode="numeric" maxLength={3} className="field max-w-32" value={start.age} onChange={(e) => setStart({ ...start, age: e.target.value.replace(/\D/g, "") })} />
             </div>
           )}
-          <div>
-            <span className="label">Estilo</span>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(TEMPLATES) as TemplateId[]).map((t) => (
-                <button type="button" key={t} aria-pressed={start.template === t} onClick={() => setStart({ ...start, template: t })} className={`rounded-2xl border-2 p-3 text-left ${start.template === t ? "border-ink bg-shell" : "border-line bg-white"}`}>
-                  <span className="font-bold block">{TEMPLATES[t].name}</span>
-                  <span className="hint">{TEMPLATES[t].description}</span>
-                </button>
-              ))}
-            </div>
-          </div>
           <button className="btn btn-primary w-full text-lg">Crear mi portada gratis</button>
           <p className="hint text-center">En el siguiente paso subes la foto de portada y puedes cambiar todos los textos.</p>
         </form>
@@ -237,14 +242,12 @@ export function NewspaperEditor() {
         </div>
       )}
 
-      <div className="mt-4 flex gap-2 lg:hidden" role="tablist">
-        <button role="tab" aria-selected={tab === "edit"} className={`chip flex-1 ${tab === "edit" ? "!bg-ink !text-white" : ""}`} onClick={() => setTab("edit")}>Editar</button>
-        <button role="tab" aria-selected={tab === "preview"} className={`chip flex-1 ${tab === "preview" ? "!bg-ink !text-white" : ""}`} onClick={() => setTab("preview")}>Vista previa</button>
-      </div>
-
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
-        <div className={`space-y-3 ${tab === "preview" ? "hidden lg:block" : ""}`}>
-          {!paid && data.photos.length === 0 && (
+        <div className="space-y-3">
+<input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+          <div className="card space-y-4 p-4 sm:p-5">
+            <p className="font-display text-xl font-bold">Tu portada</p>
+            {!paid && data.photos.length === 0 && (
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
@@ -258,15 +261,45 @@ export function NewspaperEditor() {
               </span>
             </button>
           )}
-          <Section n={1} title="Estilo y ocasión" open>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(TEMPLATES) as TemplateId[]).map((t) => (
-                <button key={t} type="button" disabled={paid} aria-pressed={data.template === t} onClick={() => update({ template: t })} className={`rounded-2xl border-2 p-3 text-left ${data.template === t ? "border-ink bg-shell" : "border-line bg-white"}`}>
-                  <span className="font-bold block">{TEMPLATES[t].name}</span>
-                  <span className="hint hidden sm:block">{TEMPLATES[t].description}</span>
-                </button>
-              ))}
+            {data.photos.length > 0 && (
+              <div className="flex items-center gap-3 rounded-2xl bg-shell p-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/api/projects/${project.id}/photos/${data.photos[0].id}?t=${encodeURIComponent(token)}&w=300`} alt="Foto de portada" className="size-16 rounded-xl object-cover" />
+                <span className="flex-1 text-sm font-semibold">Foto de portada ✓</span>
+                {!paid && (
+                  <button type="button" className="btn btn-ghost !px-3 !py-2 text-sm" disabled={uploading > 0} onClick={() => { replaceId.current = data.photos[0].id; fileInput.current?.click(); }}>
+                    Cambiar
+                  </button>
+                )}
+              </div>
+            )}
+            <div>
+              <span className="label">Estilo</span>
+              <div className="grid grid-cols-3 gap-2">
+                {(Object.keys(TEMPLATES) as TemplateId[]).map((t) => (
+                  <button key={t} type="button" disabled={paid} className="chip" aria-pressed={data.template === t} onClick={() => update({ template: t })}>
+                    {TEMPLATES[t].name}
+                  </button>
+                ))}
+              </div>
             </div>
+            {field("headline", "Titular", LIMITS.headline)}
+            {field("lead", "Texto principal", LIMITS.lead, { area: true, rows: 4 })}
+            {!paid && (
+              <button type="button" className="text-sm font-semibold underline" onClick={() => update({ headline: sugg.headline, subheadline: sugg.sub, lead: sugg.lead })}>
+                ✨ Escribir los textos por mí
+              </button>
+            )}
+          </div>
+
+          <button type="button" aria-expanded={more} onClick={() => setMore((m) => !m)} className="flex w-full items-center justify-between rounded-2xl border-2 border-line bg-white px-4 py-3 text-left font-bold transition hover:border-ink">
+            <span>{more ? "Ocultar opciones" : "➕ Añadir más (anécdotas, mensajes, fechas, más fotos…)"}</span>
+            <span aria-hidden className={`transition ${more ? "rotate-180" : ""}`}>▾</span>
+          </button>
+
+          {more && (
+            <>
+          <Section n={1} title="Ocasión">
             <div className="flex flex-wrap gap-2">
               {(Object.keys(OCCASIONS) as OccasionId[]).map((o) => (
                 <button type="button" key={o} disabled={paid} className="chip" aria-pressed={data.occasion === o} onClick={() => update({ occasion: o })}>
@@ -276,7 +309,7 @@ export function NewspaperEditor() {
             </div>
           </Section>
 
-          <Section n={2} title="Protagonista y cabecera" open>
+          <Section n={2} title="Protagonista y cabecera">
             {field("honoree", "Nombre de la persona protagonista", LIMITS.honoree)}
             {field("paperName", "Nombre del periódico", LIMITS.paperName, { placeholder: "El Diario de…" })}
             <div className="grid grid-cols-2 gap-3">
@@ -292,7 +325,7 @@ export function NewspaperEditor() {
             </div>
           </Section>
 
-          <Section n={3} title="Titular y noticia principal" open>
+          <Section n={3} title="Textos de la portada">
             {field("headline", "Titular", LIMITS.headline)}
             {field("subheadline", "Subtítulo", LIMITS.subheadline)}
             {field("lead", "Texto principal", LIMITS.lead, { area: true, rows: 6 })}
@@ -305,9 +338,8 @@ export function NewspaperEditor() {
             {field("quote", "Frase destacada (opcional)", LIMITS.quote)}
           </Section>
 
-          <Section n={4} title={`Fotos (${data.photos.length}/${LIMITS.photos})`} open>
+          <Section n={4} title={`Fotos (${data.photos.length}/${LIMITS.photos})`}>
             <p className="hint">La primera foto será la principal. Formatos JPG, PNG, WEBP o HEIC, hasta 10 MB. Tus fotos son privadas: no se publican ni se indexan, y puedes borrarlas cuando quieras.</p>
-            <input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
             {!paid && (
               <button type="button" className="btn btn-dark !py-2" onClick={() => fileInput.current?.click()} disabled={data.photos.length >= LIMITS.photos || uploading > 0}>
                 {uploading ? "Subiendo…" : "Añadir fotos"}
@@ -377,22 +409,24 @@ export function NewspaperEditor() {
             )}
             {field("signoff", "Firma al pie (opcional)", LIMITS.signoff, { placeholder: "Con cariño, tu familia" })}
           </Section>
+            </>
+          )}
+          {!paid && <Rating projectId={project.id} token={token} />}
         </div>
 
-        <div className={`${tab === "edit" ? "hidden lg:block" : ""}`}>
+        <div className="order-first lg:order-none">
           <div className="lg:sticky lg:top-20 space-y-4">
             <NewspaperPreview data={data} photoUrl={photoUrl} watermark={!paid} onPhotoSlotClick={paid ? undefined : () => fileInput.current?.click()} />
             <p className="hint text-center">
               Vista previa en pantalla. El PDF final es A3 vertical (29,7 × 42 cm), vectorial y sin marca de agua.
             </p>
-            {!paid && <Rating projectId={project.id} token={token} />}
           </div>
         </div>
       </div>
 
       {!paid && (
         <div className="mt-8 max-w-3xl mx-auto">
-          <UnlockPanel product="newspaper" projectId={project.id} token={token} />
+          <UnlockPanel product="newspaper" projectId={project.id} token={token} beforePay={flushSave} disabledReason={uploading ? "Espera a que termine de subirse la foto." : undefined} />
         </div>
       )}
       <div className="mt-6 text-center">

@@ -20,7 +20,7 @@ const MAX_PAGES = 12;
 function PreviewImg({ src, alt }: { src: string; alt: string }) {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
   return (
-    <div className="relative grid aspect-[3/4] place-items-center overflow-hidden rounded-2xl bg-white">
+    <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl border border-line bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={src} alt={alt} className={`max-h-full max-w-full object-contain transition-opacity ${state === "ok" ? "opacity-100" : "opacity-0"}`} onLoad={() => setState("ok")} onError={() => setState("error")} />
       {state === "loading" && <span className="absolute text-sm text-ink-soft animate-pulse">Dibujando contornos…</span>}
@@ -41,6 +41,11 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
   const [loading, setLoading] = useState(true);
   const fileInput = useRef<HTMLInputElement>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pendingSave = useRef<(() => Promise<void>) | null>(null);
+  const flushSave = async () => {
+    clearTimeout(timer.current);
+    await pendingSave.current?.();
+  };
 
   useEffect(() => {
     const id = params.get("p");
@@ -63,9 +68,15 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
     (p: ProjectDto | null, tok: string, next: ColoringData) => {
       if (!p || p.status === "paid") return;
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        api(`/api/projects/${p.id}`, { method: "PUT", token: tok, body: JSON.stringify({ data: next }) }).catch((e) => setError(e.message));
-      }, 600);
+      const run = async () => {
+        pendingSave.current = null;
+        await api(`/api/projects/${p.id}`, { method: "PUT", token: tok, body: JSON.stringify({ data: next }) }).catch((e) => {
+          setError(e.message);
+          throw e;
+        });
+      };
+      pendingSave.current = run;
+      timer.current = setTimeout(() => run().catch(() => {}), 600);
     },
     [],
   );
@@ -143,7 +154,7 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <p className="font-semibold text-mint">Libro para colorear · muestra gratuita</p>
       <h1 className="font-display text-4xl font-black mt-1">Convierte tus fotos en láminas para colorear</h1>
-      <p className="mt-2 max-w-2xl text-ink-soft">Sube una foto de tu mascota, tu familia o un paisaje y mira al momento cómo queda. La muestra gratuita tiene resolución limitada y marca de agua.</p>
+      <p className="mt-2 max-w-2xl text-ink-soft">Sube una foto y mira al momento cómo queda. Gratis y sin registro.</p>
       {error && <p role="alert" className="mt-4 rounded-xl bg-coral/10 p-3 text-sm font-semibold text-coral-dark">{error}</p>}
       {paid && project?.orderId && (
         <div className="mt-4 rounded-2xl bg-mint/15 p-4">
@@ -154,109 +165,107 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
 
       <input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-        <div className="space-y-4">
-          <div className="card space-y-4 p-5">
-            <div>
-              <label className="label" htmlFor="title">Título del libro</label>
-              <input id="title" className="field" maxLength={50} disabled={paid} value={data.title} placeholder="Las aventuras de Simba" onChange={(e) => update({ title: e.target.value })} />
-            </div>
-            <div>
-              <label className="label" htmlFor="ded">Dedicatoria en la portada (opcional)</label>
-              <input id="ded" className="field" maxLength={120} disabled={paid} value={data.dedication} placeholder="Para Leo, con mucho cariño" onChange={(e) => update({ dedication: e.target.value })} />
-            </div>
-            <div>
-              <span className="label">Estilo general</span>
-              <div className="grid gap-2 sm:grid-cols-3">
+      {data.pages.length === 0 || !project ? (
+        <div className="mt-6 grid items-center gap-6 lg:grid-cols-2">
+          <button
+            type="button"
+            onClick={() => fileInput.current?.click()}
+            disabled={uploading > 0 || paid}
+            className="group grid min-h-72 w-full place-items-center rounded-[2rem] border-[3px] border-dashed border-mint bg-mint/10 p-8 text-center transition hover:-translate-y-1 hover:bg-mint/15"
+          >
+            <span>
+              <span aria-hidden className="mx-auto grid size-20 place-items-center rounded-3xl bg-mint text-4xl text-white shadow-lg transition group-hover:scale-110">📷</span>
+              <span className="mt-4 block font-display text-3xl font-black">{uploading ? "Convirtiendo tu foto…" : "Sube una foto"}</span>
+              <span className="mt-1 block text-ink-soft">Desde el móvil o el ordenador. En segundos verás tu lámina.</span>
+              <span className="hint mt-3 block">Mejor fotos nítidas y con buena luz · Son privadas y puedes borrarlas</span>
+            </span>
+          </button>
+          <div className="card grid grid-cols-2 gap-3 p-4">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/samples/chelsea.webp" alt="Foto de ejemplo de un gato" className="aspect-square rounded-2xl object-cover" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/samples/chelsea-sencillo.webp" alt="La misma foto convertida en lámina para colorear" className="aspect-square rounded-2xl bg-white object-cover" />
+            <p className="hint col-span-2 text-center">Así queda: tu foto → lámina para colorear (ejemplo real).</p>
+          </div>
+        </div>
+      ) : (
+        <div className="mt-6 grid gap-6 lg:grid-cols-[1.1fr_1fr]">
+          <div className="space-y-4">
+            <div className="card p-4">
+              <div className="relative mx-auto max-w-md">
+                <PreviewImg key={previewUrl(active)} src={previewUrl(active)} alt={`Lámina para colorear de la página ${active + 1}`} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={origUrl(data.pages[active].photoId, 500)} alt="Foto original" className="absolute bottom-3 left-3 w-1/3 rotate-[-4deg] rounded-xl border-4 border-white shadow-lg" />
+              </div>
+              <p className="label mt-4">¿Más o menos detalle?</p>
+              <div className="grid grid-cols-3 gap-2">
                 {(Object.keys(STYLE_INFO) as Style[]).map((s) => (
-                  <button key={s} type="button" disabled={paid} aria-pressed={data.style === s} onClick={() => update({ style: s, pages: data.pages.map((p) => ({ photoId: p.photoId })) })} className={`rounded-2xl border-2 p-3 text-left ${data.style === s ? "border-ink bg-mint/10" : "border-line bg-white"}`}>
-                    <span className="block font-bold">{STYLE_INFO[s].name}</span>
-                    <span className="hint">{STYLE_INFO[s].text}</span>
+                  <button key={s} type="button" className="chip" disabled={paid} aria-pressed={pageStyle(active) === s} onClick={() => update({ pages: data.pages.map((p, j) => (j === active ? { ...p, style: s } : p)) })}>
+                    {STYLE_INFO[s].name}
                   </button>
                 ))}
               </div>
-              <div className="mt-2 rounded-2xl border-2 border-dashed border-line p-3 text-sm" aria-disabled>
-                <p className="font-bold">Estilo ilustración con IA {aiConfigured ? "" : "· Pendiente"}</p>
-                <p className="hint">
-                  {aiConfigured
-                    ? "Disponible próximamente en este editor."
-                    : "Esta función necesita una API de generación de imágenes que todavía no está configurada. Los estilos de arriba funcionan ya, sin IA externa."}
-                </p>
-              </div>
+              <p className="hint mt-2">Muestra gratuita con marca de agua. El libro final va en alta calidad (A4, 300 ppp) y sin marca.</p>
             </div>
+            {!paid && <Rating projectId={project.id} token={token} />}
           </div>
 
-          <div className="card p-5">
-            <div className="flex items-center justify-between">
-              <h2 className="font-display text-xl font-bold">Páginas ({data.pages.length}/{MAX_PAGES})</h2>
-              {!paid && (
-                <button type="button" className="btn btn-dark !py-2" disabled={uploading > 0 || data.pages.length >= MAX_PAGES} onClick={() => fileInput.current?.click()}>
-                  {uploading ? "Subiendo…" : "Añadir fotos"}
-                </button>
-              )}
-            </div>
-            <p className="hint mt-2">Funcionan mejor las fotos nítidas, con buena luz y un protagonista claro. Tus fotos son privadas, se usan solo para crear tu libro y puedes borrarlas cuando quieras.</p>
-            {data.pages.length === 0 ? (
-              <button type="button" onClick={() => fileInput.current?.click()} className="mt-4 grid w-full place-items-center rounded-2xl border-2 border-dashed border-ink/30 bg-shell p-10 text-center">
-                <span className="text-4xl" aria-hidden>🖼️</span>
-                <span className="mt-2 font-bold">Sube tu primera foto</span>
-                <span className="hint">JPG, PNG, WEBP o HEIC · hasta 10 MB</span>
-              </button>
-            ) : (
-              <ul className="mt-4 grid grid-cols-3 gap-3 sm:grid-cols-4">
+          <div className="space-y-4">
+            <div className="card p-5">
+              <h2 className="font-display text-xl font-bold">Tu libro · {data.pages.length} {data.pages.length === 1 ? "página" : "páginas"} <span className="hint font-sans font-normal">(hasta {MAX_PAGES})</span></h2>
+              <ul className="mt-3 grid grid-cols-4 gap-2">
                 {data.pages.map((pg, i) => (
-                  <li key={pg.photoId}>
-                    <button type="button" onClick={() => setActive(i)} className={`block w-full overflow-hidden rounded-xl border-2 ${active === i ? "border-mint" : "border-transparent"}`} aria-label={`Ver página ${i + 1}`}>
+                  <li key={pg.photoId} className="relative">
+                    <button type="button" onClick={() => setActive(i)} className={`block w-full overflow-hidden rounded-xl border-[3px] ${active === i ? "border-mint" : "border-transparent"}`} aria-label={`Ver página ${i + 1}`}>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={origUrl(pg.photoId)} alt="" className="aspect-square w-full object-cover" />
                     </button>
-                    <div className="mt-1 flex items-center justify-between text-xs">
-                      <span>Pág. {i + 1}</span>
-                      {!paid && <button type="button" className="underline text-coral-dark" onClick={() => removePage(i)}>Quitar</button>}
-                    </div>
+                    {!paid && (
+                      <button type="button" aria-label={`Quitar página ${i + 1}`} className="absolute -right-1.5 -top-1.5 grid size-6 place-items-center rounded-full bg-ink text-xs text-white" onClick={() => removePage(i)}>✕</button>
+                    )}
                   </li>
                 ))}
+                {!paid && data.pages.length < MAX_PAGES && (
+                  <li>
+                    <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading > 0} className="grid aspect-square w-full place-items-center rounded-xl border-2 border-dashed border-ink/30 bg-shell text-center text-xs font-bold">
+                      {uploading ? "…" : <span><span className="block text-2xl">+</span>Foto</span>}
+                    </button>
+                  </li>
+                )}
               </ul>
-            )}
+              <div className="mt-4">
+                <label className="label" htmlFor="title">Título de la portada (opcional)</label>
+                <input id="title" className="field" maxLength={50} disabled={paid} value={data.title} placeholder="Las aventuras de Simba" onChange={(e) => update({ title: e.target.value })} />
+              </div>
+              <details className="mt-4 group">
+                <summary className="cursor-pointer list-none text-sm font-bold underline">Más opciones (dedicatoria, estilo de todo el libro)</summary>
+                <div className="mt-3 space-y-4">
+                  <div>
+                    <label className="label" htmlFor="ded">Dedicatoria en la portada</label>
+                    <input id="ded" className="field" maxLength={120} disabled={paid} value={data.dedication} placeholder="Para Leo, con mucho cariño" onChange={(e) => update({ dedication: e.target.value })} />
+                  </div>
+                  <div>
+                    <span className="label">Estilo para todas las páginas</span>
+                    <div className="grid gap-2 sm:grid-cols-3">
+                      {(Object.keys(STYLE_INFO) as Style[]).map((s) => (
+                        <button key={s} type="button" disabled={paid} aria-pressed={data.style === s} onClick={() => update({ style: s, pages: data.pages.map((p) => ({ photoId: p.photoId })) })} className={`rounded-2xl border-2 p-3 text-left ${data.style === s ? "border-ink bg-mint/10" : "border-line bg-white"}`}>
+                          <span className="block font-bold">{STYLE_INFO[s].name}</span>
+                          <span className="hint">{STYLE_INFO[s].text}</span>
+                        </button>
+                      ))}
+                    </div>
+                    {!aiConfigured && <p className="hint mt-2">El estilo «ilustración con IA» aún no está disponible.</p>}
+                  </div>
+                </div>
+              </details>
+            </div>
           </div>
         </div>
+      )}
 
-        <div className="lg:sticky lg:top-20 h-fit space-y-4">
-          {data.pages.length > 0 && project ? (
-            <div className="card p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-bold">Muestra de la página {active + 1}</p>
-                <div className="flex gap-1">
-                  {(Object.keys(STYLE_INFO) as Style[]).map((s) => (
-                    <button key={s} type="button" className="chip !py-1 text-sm" disabled={paid} aria-pressed={pageStyle(active) === s} onClick={() => update({ pages: data.pages.map((p, j) => (j === active ? { ...p, style: s } : p)) })}>
-                      {STYLE_INFO[s].name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="mt-3 grid grid-cols-[1fr_2fr] gap-3 items-start">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={origUrl(data.pages[active].photoId, 500)} alt="Foto original" className="rounded-2xl" />
-                <PreviewImg key={previewUrl(active)} src={previewUrl(active)} alt={`Lámina para colorear de la página ${active + 1}`} />
-              </div>
-              <p className="hint mt-2">Muestra gratuita a 700 px con marca de agua. El libro final se genera a 300 ppp en A4, sin marca de agua.</p>
-            </div>
-          ) : (
-            <div className="card grid gap-3 p-5 sm:grid-cols-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/samples/chelsea.webp" alt="Foto de ejemplo de un gato" className="rounded-2xl" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/samples/chelsea-sencillo.webp" alt="La misma foto convertida en lámina para colorear" className="rounded-2xl bg-white" />
-              <p className="hint sm:col-span-2">Ejemplo real generado con el estilo «Sencillo» (foto de ejemplo con licencia libre).</p>
-            </div>
-          )}
-          {project && data.pages.length > 0 && !paid && <Rating projectId={project.id} token={token} />}
-        </div>
-      </div>
-
-      {!paid && (
+      {!paid && data.pages.length > 0 && (
         <div className="mx-auto mt-10 max-w-3xl">
-          <UnlockPanel product="coloring" projectId={project?.id ?? null} token={token} disabledReason={data.pages.length ? undefined : "Añade al menos una foto para poder comprar el libro."} />
+          <UnlockPanel product="coloring" projectId={project?.id ?? null} token={token} beforePay={flushSave} disabledReason={uploading ? "Espera a que terminen de subirse las fotos." : data.pages.length ? undefined : "Añade al menos una foto para poder comprar el libro."} />
         </div>
       )}
       {project && (
