@@ -26,6 +26,10 @@ export async function GET() {
     await getFiles().del("health/check.txt");
   });
   checks.pagos = paymentsMode();
+  // Solo el tipo de clave (p. ej. "sk_live" o "rk_test"), nunca la clave.
+  checks.tipoClaveStripe = config.stripe.secretKey ? (config.stripe.secretKey.match(/^[a-z]{2}_(live|test)/)?.[0] ?? "formato no reconocido") : "falta";
+  checks.webhookSecret = config.stripe.webhookSecret ? (config.stripe.webhookSecret.startsWith("whsec_") ? "definido" : "formato no reconocido") : "falta";
+  checks.cobrosRealesPermitidos = config.stripe.allowLive ? "sí" : "no";
   checks.appSecret = process.env.APP_SECRET ? "definido" : "falta";
   return Response.json(checks, { headers: { "Cache-Control": "no-store" } });
 }

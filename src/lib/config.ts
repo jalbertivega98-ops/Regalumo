@@ -24,8 +24,8 @@ export const config = {
   adminPassword: process.env.ADMIN_PASSWORD || "",
 
   stripe: {
-    secretKey: process.env.STRIPE_SECRET_KEY || "",
-    webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
+    secretKey: (process.env.STRIPE_SECRET_KEY || "").trim(),
+    webhookSecret: (process.env.STRIPE_WEBHOOK_SECRET || "").trim(),
     /** Cobros reales bloqueados salvo autorización explícita (ALLOW_LIVE_PAYMENTS=true). */
     allowLive: process.env.ALLOW_LIVE_PAYMENTS === "true",
   },
