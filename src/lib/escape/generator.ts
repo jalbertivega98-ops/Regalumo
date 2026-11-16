@@ -8,18 +8,8 @@ import { FINAL_WORDS, THEMES, type ThemeId } from "./themes";
  * Cada tipo de acertijo se construye junto con su solución, y las pruebas
  * automáticas comprueban que todas son resolubles (descifrar, recorrer el laberinto, etc.).
  */
-export const AGES = {
-  peques: "5 a 7 años",
-  ninos: "8 a 11 años",
-  jovenes: "12 a 15 años",
-  adultos: "Adultos y familias",
-} as const;
-export type AgeId = keyof typeof AGES;
-
-export const DIFFICULTIES = { facil: "Fácil", media: "Media", dificil: "Difícil" } as const;
-export type Difficulty = keyof typeof DIFFICULTIES;
-
-export const DURATIONS = [30, 45, 60, 90] as const;
+import { AGES, DIFFICULTIES, DURATIONS, puzzleCount, type AgeId, type Difficulty } from "./options";
+export { AGES, DIFFICULTIES, DURATIONS, puzzleCount, type AgeId, type Difficulty };
 
 export const escapeSchema = z.object({
   age: z.enum(["peques", "ninos", "jovenes", "adultos"]).default("ninos"),
@@ -498,10 +488,6 @@ const BY_AGE: Record<AgeId, string[]> = {
   adultos: ["riddle", "caesar", "logic", "wordsearch", "sequence", "maze", "lock", "numbers", "anagram"],
 };
 
-export function puzzleCount(input: Pick<EscapeInput, "duration" | "difficulty">) {
-  const base = ({ 30: 4, 45: 5, 60: 6, 90: 8 } as Record<number, number>)[input.duration] ?? 6;
-  return Math.min(9, base + (input.difficulty === "dificil" ? 1 : 0));
-}
 
 function ctxFor(input: EscapeInput, salt: string): Ctx {
   return {

@@ -1,0 +1,165 @@
+"use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { api, eur, getPackCredit } from "@/lib/client";
+import { PACK, PRODUCTS, type ProductId } from "@/lib/products/catalog";
+
+interface Props {
+  product: ProductId;
+  projectId: string | null;
+  token: string;
+  /** Crea el proyecto si aún no existe (p. ej. escape room) y devuelve id y token. */
+  ensureProject?: () => Promise<{ id: string; token: string }>;
+  disabledReason?: string;
+}
+
+/** Panel de compra: muestra qué es gratis y qué incluye el pago, y lleva a Stripe Checkout. */
+export function UnlockPanel({ product, projectId, token, ensureProject, disabledReason }: Props) {
+  const info = PRODUCTS[product];
+  const [prices, setPrices] = useState<{ single: number; pack: number } | null>(null);
+  const [sku, setSku] = useState<"single" | "pack">("single");
+  const [email, setEmail] = useState("");
+  const [promo, setPromo] = useState("");
+  const [promoInfo, setPromoInfo] = useState<string>("");
+  const [consent, setConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+  const [pack, setPack] = useState<{ orderId: string; k: string } | null>(null);
+
+  useEffect(() => {
+    Promise.all([api<{ amount: number }>(`/api/quote?sku=${product}`), api<{ amount: number }>(`/api/quote?sku=pack`)])
+      .then(([a, b]) => setPrices({ single: a.amount, pack: b.amount }))
+      .catch(() => setPrices({ single: info.defaultPriceCents, pack: PACK.defaultPriceCents }));
+    setPack(getPackCredit());
+  }, [product, info.defaultPriceCents]);
+
+  async function applyPromo() {
+    setPromoInfo("");
+    if (!promo.trim()) return;
+    try {
+      const q = await api<{ amount: number; promo: { percentOff: number } }>(`/api/quote?sku=${sku === "pack" ? "pack" : product}&promo=${encodeURIComponent(promo)}`);
+      setPromoInfo(`Código aplicado: −${q.promo.percentOff} %. Total: ${eur(q.amount)}`);
+    } catch (e) {
+      setPromoInfo((e as Error).message);
+    }
+  }
+
+  async function ids() {
+    if (projectId) return { id: projectId, token };
+    if (!ensureProject) throw new Error("Primero crea tu proyecto.");
+    return ensureProject();
+  }
+
+  async function buy() {
+    setError("");
+    setBusy(true);
+    try {
+      const p = await ids();
+      const r = await api<{ url: string }>("/api/checkout", {
+        method: "POST",
+        token: p.token,
+        body: JSON.stringify({ projectId: p.id, sku: sku === "pack" ? "pack" : product, email, promo, consent }),
+      });
+      window.location.href = r.url;
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  async function redeemPack() {
+    if (!pack) return;
+    setBusy(true);
+    setError("");
+    try {
+      const p = await ids();
+      await api(`/api/orders/${pack.orderId}/redeem`, { method: "POST", token: p.token, body: JSON.stringify({ k: pack.k, projectId: p.id }) });
+      window.location.href = `/pedido/${pack.orderId}?k=${encodeURIComponent(pack.k)}`;
+    } catch (e) {
+      setError((e as Error).message);
+      setBusy(false);
+    }
+  }
+
+  const price = prices ? (sku === "pack" ? prices.pack : prices.single) : null;
+
+  return (
+    <section className="card p-5 sm:p-6" aria-labelledby="unlock-title">
+      <h2 id="unlock-title" className="font-display text-2xl font-bold">Desbloquea tu regalo completo</h2>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2 text-sm">
+        <div className="rounded-2xl bg-shell p-4">
+          <p className="font-bold mb-2">Gratis, ahora mismo</p>
+          <ul className="space-y-1.5">
+            {info.free.map((f) => (
+              <li key={f} className="flex gap-2"><span aria-hidden>✓</span>{f}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-2xl bg-ink text-white p-4">
+          <p className="font-bold mb-2">Al pagar {price !== null && sku === "single" ? eur(price) : ""}</p>
+          <ul className="space-y-1.5">
+            {info.paid.map((f) => (
+              <li key={f} className="flex gap-2"><span aria-hidden className="text-sun">★</span>{f}</li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {pack && (
+        <div className="mt-4 rounded-2xl border-2 border-mint p-4 text-sm">
+          <p className="font-bold">Tienes un pack de 3 regalos.</p>
+          <p className="mt-1">Puedes usar tu hueco de «{info.name}» sin pagar de nuevo.</p>
+          <button className="btn btn-dark mt-3 !py-2" onClick={redeemPack} disabled={busy || !!disabledReason}>
+            Usar mi pack para este regalo
+          </button>
+        </div>
+      )}
+
+      <fieldset className="mt-5 grid gap-2 sm:grid-cols-2">
+        <legend className="label">Elige</legend>
+        <label className={`rounded-2xl border-2 p-3 cursor-pointer ${sku === "single" ? "border-ink" : "border-line"}`}>
+          <input type="radio" name="sku" className="sr-only" checked={sku === "single"} onChange={() => setSku("single")} />
+          <span className="font-bold block">{info.name}</span>
+          <span className="text-lg font-display font-bold">{prices ? eur(prices.single) : "…"}</span>
+        </label>
+        <label className={`rounded-2xl border-2 p-3 cursor-pointer ${sku === "pack" ? "border-ink" : "border-line"}`}>
+          <input type="radio" name="sku" className="sr-only" checked={sku === "pack"} onChange={() => setSku("pack")} />
+          <span className="font-bold block">{PACK.name}</span>
+          <span className="text-lg font-display font-bold">{prices ? eur(prices.pack) : "…"}</span>
+          <span className="hint block">Este regalo + los otros dos productos cuando quieras.</span>
+        </label>
+      </fieldset>
+
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className="label" htmlFor="unlock-email">Correo para recibir el enlace (opcional)</label>
+          <input id="unlock-email" type="email" className="field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" autoComplete="email" />
+        </div>
+        <div>
+          <label className="label" htmlFor="unlock-promo">Código promocional</label>
+          <div className="flex gap-2">
+            <input id="unlock-promo" className="field" value={promo} onChange={(e) => setPromo(e.target.value)} placeholder="Opcional" />
+            <button type="button" className="btn btn-ghost !py-2" onClick={applyPromo}>Aplicar</button>
+          </div>
+          {promoInfo && <p className="hint mt-1">{promoInfo}</p>}
+        </div>
+      </div>
+
+      <label className="mt-4 flex gap-3 text-sm items-start">
+        <input type="checkbox" className="mt-1 size-5 accent-[#1E1633]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+        <span>
+          Quiero recibir el contenido digital de inmediato y acepto que, una vez iniciada la descarga, pierdo el derecho de desistimiento.
+          He leído las <Link href="/legal/condiciones" className="underline" target="_blank">condiciones de venta</Link>.
+        </span>
+      </label>
+
+      {error && <p role="alert" className="mt-3 rounded-xl bg-coral/10 p-3 text-sm font-semibold text-coral-dark">{error}</p>}
+      {disabledReason && <p className="mt-3 hint">{disabledReason}</p>}
+
+      <button className="btn btn-primary mt-5 w-full text-lg" onClick={buy} disabled={busy || !consent || !!disabledReason}>
+        {busy ? "Abriendo pago seguro…" : `Pagar ${price !== null ? eur(price) : ""} y descargar`}
+      </button>
+      <p className="hint mt-2 text-center">Pago seguro con Stripe. No guardamos los datos de tu tarjeta.</p>
+    </section>
+  );
+}
