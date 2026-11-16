@@ -109,7 +109,7 @@ export function EscapeEditor() {
     <div className="mx-auto max-w-6xl px-4 py-8">
       <p className="font-semibold text-violet">Escape room personalizado · demo gratuita</p>
       <h1 className="font-display text-4xl font-black mt-1">Diseña vuestra aventura</h1>
-      <p className="mt-2 max-w-2xl text-ink-soft">Elige cómo será el juego y prueba ahora una mini aventura de 3 acertijos, generada con tus datos. Sin registro.</p>
+      <p className="mt-2 max-w-2xl text-ink-soft">Elige edad y aventura, y juega ahora gratis una mini versión de 3 acertijos. Sin registro.</p>
 
       {project?.status === "paid" && project.orderId && (
         <div className="mt-4 rounded-2xl bg-mint/15 p-4">
@@ -121,7 +121,7 @@ export function EscapeEditor() {
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <div className="card space-y-5 p-5">
           <div>
-            <span className="label">Edad de los jugadores</span>
+            <span className="label">1. ¿Para qué edad?</span>
             <div className="flex flex-wrap gap-2">
               {(Object.keys(AGES) as AgeId[]).map((a) => (
                 <button key={a} type="button" className="chip" aria-pressed={input.age === a} onClick={() => set({ age: a })}>{AGES[a]}</button>
@@ -129,7 +129,7 @@ export function EscapeEditor() {
             </div>
           </div>
           <div>
-            <span className="label">Temática</span>
+            <span className="label">2. Elige una aventura</span>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {THEME_OPTIONS.map((t) => (
                 <button key={t.id} type="button" aria-pressed={input.theme === t.id} onClick={() => set({ theme: t.id })} className={`rounded-2xl border-2 p-3 text-left ${input.theme === t.id ? "border-ink bg-violet/10" : "border-line bg-white"}`}>
@@ -139,6 +139,13 @@ export function EscapeEditor() {
               ))}
             </div>
           </div>
+          <div className="max-w-sm">
+            <label className="label" htmlFor="hero">¿Quién es el protagonista? (opcional)</label>
+            <input id="hero" maxLength={40} className="field" value={input.hero} onChange={(e) => set({ hero: e.target.value })} placeholder="Ej.: Mateo" />
+          </div>
+          <details className="rounded-2xl bg-shell p-4">
+            <summary className="cursor-pointer list-none font-bold">⚙️ Más opciones <span className="hint font-normal">(dificultad, duración, jugadores…)</span></summary>
+            <div className="mt-4 space-y-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <span className="label">Dificultad</span>
@@ -157,27 +164,25 @@ export function EscapeEditor() {
               </div>
             </div>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="players">Participantes</label>
               <input id="players" type="number" min={1} max={20} className="field" value={input.players} onChange={(e) => set({ players: Math.max(1, Math.min(20, Number(e.target.value) || 1)) })} />
-            </div>
-            <div>
-              <label className="label" htmlFor="hero">Protagonista (opcional)</label>
-              <input id="hero" maxLength={40} className="field" value={input.hero} onChange={(e) => set({ hero: e.target.value })} placeholder="Ej.: Mateo" />
             </div>
             <div>
               <label className="label" htmlFor="team">Nombre del equipo</label>
               <input id="team" maxLength={40} className="field" value={input.team} onChange={(e) => set({ team: e.target.value })} placeholder="Opcional" />
             </div>
           </div>
+            </div>
+          </details>
           {error && <p role="alert" className="rounded-xl bg-coral/10 p-3 text-sm font-semibold text-coral-dark">{error}</p>}
           <button className="btn btn-primary w-full text-lg" onClick={play} disabled={busy}>
-            {busy ? "Preparando la aventura…" : demo ? "Generar otra demo con estos datos" : "Jugar la demo gratis"}
+            {busy ? "Preparando la aventura…" : demo ? "Generar otra demo con estos datos" : "▶ Jugar la demo gratis"}
           </button>
         </div>
 
-        <aside className="card p-5">
+        <aside className="card hidden h-fit p-5 lg:block">
           <h2 className="font-display text-2xl font-bold">Qué recibirás en el juego completo</h2>
           <ul className="mt-3 space-y-2 text-sm">
             <li>✓ <b>{n} acertijos</b> encadenados para {input.duration} minutos ({DIFFICULTIES[input.difficulty].toLowerCase()}), pensados para {AGES[input.age].toLowerCase()}.</li>

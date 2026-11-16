@@ -35,9 +35,9 @@ test("escape room: demo jugable con pista, fallo y solución; compra y PDF", asy
 
 test("libro para colorear: dos fotos, vista previa con marca de agua, compra y PDF", async ({ page }) => {
   await page.goto("/crear/libro-colorear");
-  await page.fill("#title", "Las aventuras de Chelsea");
   await page.setInputFiles("input[type=file]", [SAMPLE_A, SAMPLE_B]);
-  await expect(page.getByText("Pág. 2")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByLabel("Ver página 2")).toBeVisible({ timeout: 30_000 });
+  await page.fill("#title", "Las aventuras de Chelsea");
   await expect(page.locator('img[alt^="Lámina"]').first()).toBeVisible();
   const { bytes } = await payAndDownload(page);
   expect(bytes.length).toBeGreaterThan(50_000);
