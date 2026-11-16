@@ -120,7 +120,7 @@ function takeWord(ctx: Ctx, maxLen = 9, minLen = 3) {
   return w;
 }
 
-const pretty = (w: string) => w.charAt(0) + w.slice(1).toLowerCase();
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 /* ---------- tipos de acertijo ---------- */
 
@@ -134,7 +134,7 @@ const riddle: Gen = (ctx) => {
   return {
     kind: "riddle",
     title: "La adivinanza del guardián",
-    instructions: `${pretty(ctx.theme.guardian)} solo os dejará pasar si adivináis esto:`,
+    instructions: `${cap(ctx.theme.guardian)} solo os dejará pasar si adivináis esto:`,
     printable: { type: "text", lines: [r.text], big: "¿Qué es?" },
     answer: r.answer.toUpperCase(),
     accept: r.accept.map(normalizeAnswer),

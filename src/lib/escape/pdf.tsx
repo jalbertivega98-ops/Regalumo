@@ -10,7 +10,7 @@ const MUTED = "#5E5873";
 
 const s = {
   page: { padding: 40, fontFamily: "Inter", fontSize: 11, color: INK, lineHeight: 1.45 },
-  h1: { fontFamily: "Fraunces", fontWeight: 900 as const, fontSize: 30, marginBottom: 8, lineHeight: 1.1 },
+  h1: { fontFamily: "Fraunces", fontWeight: 900 as const, fontSize: 30, marginBottom: 8, lineHeight: 1.2 },
   h2: { fontFamily: "Fraunces", fontWeight: 700 as const, fontSize: 18, marginTop: 14, marginBottom: 6, color: ACCENT },
   small: { fontSize: 9, color: MUTED },
   li: { flexDirection: "row" as const, marginBottom: 3 },
@@ -38,9 +38,9 @@ const ABC = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 function AlphabetStrip({ numbers }: { numbers?: boolean }) {
   return (
-    <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 12, borderWidth: 1, borderColor: INK }}>
+    <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 12, borderWidth: 1, borderColor: INK, width: 39 * 13 + 2, alignSelf: "center" }}>
       {ABC.split("").map((c, i) => (
-        <View key={c} style={{ width: `${100 / 13}%`, borderRightWidth: (i + 1) % 13 ? 0.5 : 0, borderBottomWidth: i < 13 ? 0.5 : 0, borderColor: INK, paddingVertical: 4, alignItems: "center" }}>
+        <View key={c} style={{ width: 39, borderRightWidth: (i + 1) % 13 ? 0.5 : 0, borderBottomWidth: i < 13 ? 0.5 : 0, borderColor: INK, paddingVertical: 4, alignItems: "center" }}>
           <Text style={{ fontWeight: 800, fontSize: 13 }}>{c}</Text>
           {numbers ? <Text style={{ fontSize: 8, color: MUTED }}>{i + 1}</Text> : null}
         </View>
@@ -232,7 +232,7 @@ function EscapeDoc({ g }: { g: EscapeGame }) {
         <View style={{ flex: 1, backgroundColor: INK, padding: 50, justifyContent: "space-between" }}>
           <Text style={{ color: "#FFC23D", fontWeight: 800, letterSpacing: 3, fontSize: 11 }}>ESCAPE ROOM · {g.themeName.toUpperCase()}</Text>
           <View>
-            <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 46, color: "#FFFFFF", lineHeight: 1.05 }}>{g.title}</Text>
+            <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 46, color: "#FFFFFF", lineHeight: 1.15 }}>{g.title}</Text>
             <Text style={{ color: "#CFC7F5", fontSize: 14, marginTop: 14 }}>
               {AGES[input.age]} · {input.players} jugadores · {input.duration} minutos · dificultad {DIFFICULTIES[input.difficulty].toLowerCase()}
             </Text>
@@ -373,8 +373,8 @@ function EscapeDoc({ g }: { g: EscapeGame }) {
       <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 30 }}>
         <View style={{ flex: 1, borderWidth: 4, borderColor: ACCENT, borderRadius: 16, padding: 40, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ letterSpacing: 4, fontWeight: 800, color: ACCENT }}>DIPLOMA</Text>
-          <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 38, textAlign: "center", marginTop: 10 }}>{g.title}</Text>
-          <Text style={{ fontSize: 15, marginTop: 20, textAlign: "center" }}>Se concede a</Text>
+          <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 34, textAlign: "center", marginTop: 10, lineHeight: 1.25 }}>{g.title}</Text>
+          <Text style={{ fontSize: 15, marginTop: 28, textAlign: "center" }}>Se concede a</Text>
           <View style={{ width: 380, borderBottomWidth: 1.5, borderColor: INK, height: 40 }} />
           <Text style={{ fontSize: 15, marginTop: 20, textAlign: "center" }}>por resolver todos los enigmas con ingenio y trabajo en equipo.</Text>
           <Text style={{ fontFamily: "Caveat", fontSize: 26, marginTop: 24 }}>Firmado: {g.guardian}</Text>

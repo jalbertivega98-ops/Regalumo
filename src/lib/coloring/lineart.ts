@@ -25,8 +25,8 @@ interface Params {
 
 const PARAMS: Record<ColoringStyle, Params> = {
   infantil: { work: 480, median: 11, colors: 4, minArea: 0.008, edges: 0, thicken: 3.4 },
-  sencillo: { work: 700, median: 7, colors: 7, minArea: 0.0018, edges: 0, thicken: 1.9 },
-  detallado: { work: 900, median: 5, colors: 11, minArea: 0.0005, edges: 0, thicken: 1.1 },
+  sencillo: { work: 600, median: 9, colors: 6, minArea: 0.003, edges: 0, thicken: 2.2 },
+  detallado: { work: 800, median: 7, colors: 9, minArea: 0.0011, edges: 0, thicken: 1.3 },
 };
 
 export class ImageInputError extends Error {}

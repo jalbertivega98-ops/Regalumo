@@ -45,9 +45,9 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
   }
 
   async function ids() {
+    if (ensureProject) return ensureProject();
     if (projectId) return { id: projectId, token };
-    if (!ensureProject) throw new Error("Primero crea tu proyecto.");
-    return ensureProject();
+    throw new Error("Primero crea tu proyecto.");
   }
 
   async function buy() {

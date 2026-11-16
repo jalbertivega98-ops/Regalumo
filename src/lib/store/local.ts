@@ -13,15 +13,27 @@ type Row = { data: unknown; updatedAt: number };
 type Db = { docs: Record<string, Record<string, Row>>; counters: Record<string, number> };
 
 let cache: Db | null = null;
+let cacheMtime = 0;
 let chain: Promise<unknown> = Promise.resolve();
 
+/**
+ * Next.js puede cargar este módulo varias veces (páginas y rutas de API),
+ * así que se vuelve a leer el archivo si otro proceso lo ha modificado.
+ */
 async function load(): Promise<Db> {
-  if (cache) return cache;
+  let mtime = 0;
+  try {
+    mtime = (await fs.stat(DB_FILE)).mtimeMs;
+  } catch {
+    /* aún no existe */
+  }
+  if (cache && mtime === cacheMtime) return cache;
   try {
     cache = JSON.parse(await fs.readFile(DB_FILE, "utf8")) as Db;
   } catch {
     cache = { docs: {}, counters: {} };
   }
+  cacheMtime = mtime;
   return cache;
 }
 
@@ -30,6 +42,7 @@ async function persist() {
   const tmp = DB_FILE + "." + process.pid + ".tmp";
   await fs.writeFile(tmp, JSON.stringify(cache));
   await fs.rename(tmp, DB_FILE);
+  cacheMtime = (await fs.stat(DB_FILE)).mtimeMs;
 }
 
 function serial<T>(fn: () => Promise<T>): Promise<T> {
