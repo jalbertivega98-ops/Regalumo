@@ -87,8 +87,8 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
         <p>Los proyectos que no se compran se eliminan automáticamente a los {config.retention.unpaidDays} días de su última modificación. Los proyectos comprados se conservan {config.retention.paidDays} días para que puedas volver a descargarlos. Los datos de facturación se conservan el tiempo exigido por la ley. Puedes borrar un proyecto y sus fotos en cualquier momento desde el propio editor.</p>
         <h2>Encargados del tratamiento</h2>
         <ul>
-          <li>Vercel Inc. (alojamiento web). [Verificar región y garantías de transferencia internacional.]</li>
-          <li>Supabase Inc. (base de datos y almacenamiento privado de archivos). [Elegir región UE y verificar contrato.]</li>
+          <li>Vercel Inc. (alojamiento web; funciones ejecutadas en la UE, París). [Verificar garantías de transferencia internacional.]</li>
+          <li>Supabase Inc. (base de datos y almacenamiento privado de archivos), con los datos alojados en la UE (Fráncfort). [Verificar contrato de encargo de tratamiento.]</li>
           <li>Stripe Payments Europe, Ltd. (pagos).</li>
           <li>Resend (correos de compra), si se activa. [Verificar contrato y región.]</li>
         </ul>
