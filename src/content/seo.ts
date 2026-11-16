@@ -270,7 +270,7 @@ export const SEO_PAGES: SeoPage[] = [
     ],
     faq: [
       { q: "¿Recibo algo físico?", a: "No. Recibes un PDF de alta calidad para imprimir donde quieras o compartir en digital." },
-      { q: "¿Tengo que crear una cuenta?", a: "No. Puedes probar y comprar sin registrarte. Si dejas tu correo, te enviamos el enlace de descarga." },
+      { q: "¿Tengo que crear una cuenta?", a: "No. Puedes probar y comprar sin registrarte. Tras el pago verás tu página privada de descarga, con un botón para copiar el enlace y guardarlo." },
       { q: "¿Qué pasa con mis fotos?", a: "Se guardan en privado, no se indexan en buscadores y puedes borrarlas cuando quieras. Los proyectos sin pagar se borran automáticamente pasado un tiempo." },
     ],
     related: ["periodico-personalizado", "escape-room-personalizado", "libro-para-colorear-personalizado"],
@@ -370,9 +370,9 @@ export function getSeoPage(slug: string) {
 
 /** FAQ general de la página principal. */
 export const HOME_FAQ = [
-  { q: "¿Tengo que registrarme para probar?", a: "No. Pulsa «Crear gratis», introduce tus datos y verás el resultado al momento. Solo te pedimos un correo (opcional) si decides comprar." },
+  { q: "¿Tengo que registrarme para probar?", a: "No. Pulsa «Crear gratis», introduce tus datos y verás el resultado al momento. Para comprar solo necesitas pagar; el correo es opcional." },
   { q: "¿Qué es gratis y qué es de pago?", a: "Crear, previsualizar y modificar es gratis. Pagas solo para descargar el archivo final en alta calidad y sin marca de agua. En cada herramienta verás exactamente qué incluye cada opción." },
-  { q: "¿Cómo recibo mi compra?", a: "Justo después del pago aparece tu página de descarga privada. Si dejas tu correo, también te enviamos el enlace. Está disponible 30 días." },
+  { q: "¿Cómo recibo mi compra?", a: "Justo después del pago aparece tu página privada de descarga, con un botón para copiar el enlace. Guárdalo: funciona durante 30 días. Si lo pierdes, escríbenos con el correo de tu pago y te lo reenviamos." },
   { q: "¿Qué pasa con mis fotos y datos?", a: "Se guardan en privado, solo para crear tu regalo. No se publican ni se indexan, puedes borrarlos en cualquier momento y los proyectos sin pagar se eliminan automáticamente." },
   { q: "¿Usáis inteligencia artificial?", a: "Usamos generación automática propia (plantillas, algoritmos y comprobaciones) que funciona al instante y sin coste para ti. Cuando una función necesite un servicio externo de IA, lo indicaremos claramente." },
   { q: "¿Puedo pedir un reembolso?", a: "Al tratarse de contenido digital personalizado que se entrega al instante, el derecho de desistimiento se pierde al iniciar la descarga, y así lo aceptas antes de pagar. Si hay un problema técnico con tu archivo, escríbenos y lo solucionamos." },

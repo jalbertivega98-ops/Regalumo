@@ -1,5 +1,5 @@
 import { getStore } from "@/lib/store";
-import type { Order } from "@/lib/payments/orders";
+import { orderUrl, type Order } from "@/lib/payments/orders";
 import { PACK, PRODUCTS, formatEur } from "@/lib/products/catalog";
 import { Table, fmtDate } from "@/components/admin/ui";
 
@@ -11,7 +11,7 @@ export default async function Pedidos() {
     <div className="space-y-4">
       <h1 className="font-display text-3xl font-black">Pedidos</h1>
       <Table
-        head={["Fecha", "Pedido", "Producto", "Importe", "Estado", "Pago", "Cliente", "Promo"]}
+        head={["Fecha", "Pedido", "Producto", "Importe", "Estado", "Pago", "Cliente", "Promo", "Enlace de descarga"]}
         rows={orders.map((o) => [
           fmtDate(o.createdAt),
           <code key="id" className="text-xs">{o.id}</code>,
@@ -21,6 +21,11 @@ export default async function Pedidos() {
           o.provider === "mock" ? "Simulado" : o.livemode ? "Stripe real" : "Stripe prueba",
           o.email ?? "—",
           o.promoCode ?? "—",
+          o.status === "paid" ? (
+            <a key="url" className="underline font-semibold" href={orderUrl(o.id)} target="_blank" rel="noreferrer" title="Enlace privado del cliente: cópialo para reenviárselo si lo pierde">Abrir</a>
+          ) : (
+            "—"
+          ),
         ])}
         empty="Todavía no hay pedidos."
       />

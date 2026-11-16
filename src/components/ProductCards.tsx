@@ -3,10 +3,10 @@ import Image from "next/image";
 import { PRODUCTS, formatEur, type ProductId } from "@/lib/products/catalog";
 import type { Prices } from "@/lib/settings";
 
-const VISUAL: Record<ProductId, { img?: string; bg: string; tag: string }> = {
+const VISUAL: Record<ProductId, { bg: string; tag: string }> = {
   newspaper: { bg: "bg-coral/15", tag: "Cumpleaños, bodas, jubilaciones" },
   escape: { bg: "bg-violet/15", tag: "De 5 años a adultos" },
-  coloring: { img: "/samples/chelsea-infantil.webp", bg: "bg-mint/15", tag: "Mascotas, familia, viajes" },
+  coloring: { bg: "bg-mint/15", tag: "Mascotas, familia, viajes" },
 };
 
 function MiniNewspaper() {
@@ -23,6 +23,21 @@ function MiniNewspaper() {
             <div key={i} className="h-1 rounded bg-ink/25" />
           ))}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniColoring() {
+  return (
+    <div className="relative h-40 w-60" aria-hidden>
+      <div className="absolute left-0 top-3 h-28 w-36 rotate-[-6deg] overflow-hidden rounded-xl border-4 border-white bg-white shadow-lg">
+        <Image src="/samples/chelsea.webp" alt="" fill sizes="144px" className="object-cover" />
+        <span className="absolute left-1.5 top-1.5 rounded-full bg-ink/80 px-2 py-0.5 text-[10px] font-bold text-white">Foto</span>
+      </div>
+      <div className="absolute right-0 bottom-0 h-32 w-44 rotate-[3deg] overflow-hidden rounded-xl border-4 border-white bg-white shadow-xl">
+        <Image src="/samples/chelsea-sencillo.webp" alt="" fill sizes="176px" className="object-cover" />
+        <span className="absolute right-1.5 top-1.5 rounded-full bg-mint px-2 py-0.5 text-[10px] font-bold text-ink">Para colorear</span>
       </div>
     </div>
   );
@@ -57,9 +72,7 @@ export function ProductCards({ prices }: { prices: Prices }) {
               ) : id === "escape" ? (
                 <MiniEscape />
               ) : (
-                <div className="relative h-40 w-56 rotate-[-2deg] overflow-hidden rounded-xl bg-white shadow-lg">
-                  <Image src={v.img!} alt="Ejemplo de lámina para colorear generada desde una foto" fill sizes="224px" className="object-cover" />
-                </div>
+                <MiniColoring />
               )}
             </div>
             <div className="flex flex-1 flex-col p-6">
