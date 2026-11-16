@@ -22,7 +22,7 @@ function PreviewImg({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative grid aspect-[4/3] place-items-center overflow-hidden rounded-2xl border border-line bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className={`max-h-full max-w-full object-contain transition-opacity ${state === "ok" ? "opacity-100" : "opacity-0"}`} onLoad={() => setState("ok")} onError={() => setState("error")} />
+      <img src={src} alt={alt} className={`absolute inset-0 h-full w-full object-contain p-1 transition-opacity ${state === "ok" ? "opacity-100" : "opacity-0"}`} onLoad={() => setState("ok")} onError={() => setState("error")} />
       {state === "loading" && <span className="absolute text-sm text-ink-soft animate-pulse">Dibujando contornos…</span>}
       {state === "error" && <span className="absolute p-4 text-center text-sm text-coral-dark">No se pudo generar la muestra (puede que hayas alcanzado el límite gratuito de hoy).</span>}
     </div>
@@ -195,7 +195,7 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
               <div className="relative mx-auto max-w-md">
                 <PreviewImg key={previewUrl(active)} src={previewUrl(active)} alt={`Lámina para colorear de la página ${active + 1}`} />
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={origUrl(data.pages[active].photoId, 500)} alt="Foto original" className="absolute bottom-3 left-3 w-1/3 rotate-[-4deg] rounded-xl border-4 border-white shadow-lg" />
+                <img src={origUrl(data.pages[active].photoId, 500)} alt="Foto original" className="absolute -bottom-3 -left-3 w-1/4 rotate-[-4deg] rounded-xl border-4 border-white shadow-lg" />
               </div>
               <p className="label mt-4">¿Más o menos detalle?</p>
               <div className="grid grid-cols-3 gap-2">

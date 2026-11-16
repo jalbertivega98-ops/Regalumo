@@ -2,6 +2,11 @@ import React from "react";
 import { Document, Image, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { registerFonts } from "../pdf/fonts";
 
+/** Lee ancho y alto de la cabecera PNG para orientar la página como la foto. */
+function isLandscape(png: Buffer) {
+  return png.length > 24 && png.readUInt32BE(16) > png.readUInt32BE(20);
+}
+
 /** Libro para colorear: portada + una lámina por página (A4, imágenes a 300 ppp). */
 export async function renderColoringPdf(opts: { title: string; dedication: string; pages: Buffer[]; cover?: Buffer }) {
   registerFonts();
@@ -21,7 +26,7 @@ export async function renderColoringPdf(opts: { title: string; dedication: strin
         </View>
       </Page>
       {opts.pages.map((png, i) => (
-        <Page key={i} size="A4" style={{ padding: 28, alignItems: "center", justifyContent: "center" }}>
+        <Page key={i} size="A4" orientation={isLandscape(png) ? "landscape" : "portrait"} style={{ padding: 28, alignItems: "center", justifyContent: "center" }}>
           <Image src={{ data: png, format: "png" }} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
           <Text fixed style={{ position: "absolute", bottom: 12, right: 28, fontSize: 8, color: "#9A93B3", fontFamily: "Inter" }}>
             {i + 1}
