@@ -48,7 +48,7 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
         <h2>3. Precio y pago</h2>
         <p>Los precios se muestran en euros e incluyen los impuestos aplicables [confirmar régimen de IVA con la asesoría]. El pago se realiza con tarjeta u otros métodos ofrecidos por Stripe Payments Europe, Ltd. REGALUMO no accede a los datos completos de la tarjeta.</p>
         <h2>4. Proceso de compra</h2>
-        <p>Antes de pagar, la persona usuaria puede crear y revisar gratuitamente la vista previa del producto. Al pulsar el botón de pago se le redirige a la pasarela segura. Una vez confirmado el pago por la pasarela, el producto se desbloquea y se muestra una página privada de descarga. Si se facilita un correo electrónico, se envía también el enlace.</p>
+        <p>Antes de pagar, la persona usuaria puede crear y revisar gratuitamente la vista previa del producto. Al pulsar el botón de pago se le redirige a la pasarela segura. Una vez confirmado el pago por la pasarela, el producto se desbloquea y se muestra una página privada de descarga. Si se facilita un correo electrónico y el envío de correos está activo, se envía también el enlace.</p>
         <h2>5. Entrega y plazo de descarga</h2>
         <p>La entrega es inmediata tras la confirmación del pago. El enlace de descarga está disponible durante 30 días. Recomendamos guardar el archivo.</p>
         <h2>6. Derecho de desistimiento</h2>

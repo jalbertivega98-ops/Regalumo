@@ -6,7 +6,25 @@ import { api, eur, saveOrderKey, savePackCredit } from "@/lib/client";
 type Item = { product: string; name: string; editorPath: string; projectId: string | null; ready: boolean; downloadUrl: string | null };
 type OrderDto = { id: string; sku: string; status: string; amountCents: number; expired: boolean; provider: string; items: Item[] };
 
-export function OrderStatus({ id, k }: { id: string; k: string }) {
+function CopyLink() {
+  const [done, setDone] = useState(false);
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setDone(true);
+      setTimeout(() => setDone(false), 2500);
+    } catch {
+      window.prompt("Copia este enlace:", window.location.href);
+    }
+  };
+  return (
+    <button type="button" className="btn btn-ghost !py-2" onClick={copy} aria-live="polite">
+      {done ? "¡Enlace copiado!" : "Copiar mi enlace"}
+    </button>
+  );
+}
+
+export function OrderStatus({ id, k, emails = false, contact }: { id: string; k: string; emails?: boolean; contact?: string }) {
   const [order, setOrder] = useState<OrderDto | null>(null);
   const [error, setError] = useState("");
   const [tries, setTries] = useState(0);
@@ -42,7 +60,7 @@ export function OrderStatus({ id, k }: { id: string; k: string }) {
       <div className="card p-6 text-center">
         <p className="font-display text-2xl font-bold">Confirmando tu pago…</p>
         <p className="mt-2 text-ink-soft">Esperamos la confirmación segura de Stripe. Suele tardar unos segundos.</p>
-        {tries > 15 && <p className="mt-3 hint">Está tardando más de lo normal. Si has pagado, recibirás el enlace por correo en cuanto se confirme. Puedes recargar esta página.</p>}
+        {tries > 15 && <p className="mt-3 hint">Está tardando más de lo normal. Si has pagado, recarga esta página en un minuto. No la cierres: es tu enlace de descarga.</p>}
       </div>
     );
 
@@ -59,7 +77,15 @@ export function OrderStatus({ id, k }: { id: string; k: string }) {
       <div className="card p-6">
         <p className="text-mint font-bold">Pago confirmado · {eur(order.amountCents)}</p>
         <h1 className="font-display text-3xl font-black mt-1">¡Tu regalo está listo!</h1>
-        <p className="mt-2 text-ink-soft">Guarda esta página en favoritos: es tu enlace privado de descarga durante 30 días.</p>
+        <div className="mt-4 rounded-2xl bg-sun/25 p-4">
+          <p className="font-bold">Guarda este enlace: es tu acceso privado de descarga durante 30 días.</p>
+          <p className="mt-1 text-sm text-ink-soft">
+            {emails
+              ? "Si dejaste tu correo, también te lo hemos enviado."
+              : "Cópialo o añade esta página a favoritos. Si lo pierdes, escríbenos" + (contact ? ` a ${contact}` : "") + " con el correo con el que pagaste."}
+          </p>
+          <div className="mt-3"><CopyLink /></div>
+        </div>
         {order.provider === "mock" && <p className="mt-2 rounded-xl bg-sun/30 p-2 text-sm font-semibold">Pedido de prueba con pago simulado (entorno de desarrollo).</p>}
       </div>
       {order.items.map((it) => (
