@@ -17,6 +17,7 @@ interface Props {
 export function UnlockPanel({ product, projectId, token, ensureProject, disabledReason }: Props) {
   const info = PRODUCTS[product];
   const [prices, setPrices] = useState<{ single: number; pack: number } | null>(null);
+  const [emails, setEmails] = useState(false);
   const [sku, setSku] = useState<"single" | "pack">("single");
   const [email, setEmail] = useState("");
   const [promo, setPromo] = useState("");
@@ -27,8 +28,11 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
   const [pack, setPack] = useState<{ orderId: string; k: string } | null>(null);
 
   useEffect(() => {
-    Promise.all([api<{ amount: number }>(`/api/quote?sku=${product}`), api<{ amount: number }>(`/api/quote?sku=pack`)])
-      .then(([a, b]) => setPrices({ single: a.amount, pack: b.amount }))
+    Promise.all([api<{ amount: number; emails?: boolean }>(`/api/quote?sku=${product}`), api<{ amount: number }>(`/api/quote?sku=pack`)])
+      .then(([a, b]) => {
+        setPrices({ single: a.amount, pack: b.amount });
+        setEmails(Boolean(a.emails));
+      })
       .catch(() => setPrices({ single: info.defaultPriceCents, pack: PACK.defaultPriceCents }));
     const t = setTimeout(() => setPack(getPackCredit()), 0);
     return () => clearTimeout(t);
@@ -133,7 +137,7 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
         <div>
-          <label className="label" htmlFor="unlock-email">Correo para recibir el enlace (opcional)</label>
+          <label className="label" htmlFor="unlock-email">{emails ? "Correo para recibir el enlace (opcional)" : "Tu correo (opcional, por si necesitas ayuda con el pedido)"}</label>
           <input id="unlock-email" type="email" className="field" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@correo.com" autoComplete="email" />
         </div>
         <div>
