@@ -43,10 +43,14 @@ export function orderUrl(orderId: string) {
   return `${config.siteUrl}/pedido/${orderId}?k=${encodeURIComponent(orderToken(orderId))}`;
 }
 
+/** Claves estándar (sk_) o restringidas (rk_) de Stripe. */
+const isLiveKey = (k: string) => /^(sk|rk)_live_/.test(k);
+const isTestKey = (k: string) => /^(sk|rk)_test_/.test(k);
+
 let stripeClient: Stripe | null = null;
 export function stripe() {
   if (!config.stripe.secretKey) throw new HttpError(503, "Los pagos todavía no están configurados.");
-  if (config.stripe.secretKey.startsWith("sk_live_") && !config.stripe.allowLive) {
+  if (isLiveKey(config.stripe.secretKey) && !config.stripe.allowLive) {
     // Salvaguarda: nunca cobrar de verdad sin autorización explícita del propietario.
     throw new HttpError(503, "Los cobros reales están desactivados. Usa una clave de prueba (sk_test_).");
   }
@@ -56,8 +60,8 @@ export function stripe() {
 
 export function paymentsMode(): "stripe-test" | "stripe-live" | "mock" | "off" {
   const k = config.stripe.secretKey;
-  if (k.startsWith("sk_test_")) return "stripe-test";
-  if (k.startsWith("sk_live_")) return config.stripe.allowLive ? "stripe-live" : "off";
+  if (isTestKey(k)) return "stripe-test";
+  if (isLiveKey(k)) return config.stripe.allowLive ? "stripe-live" : "off";
   return config.mockPayments ? "mock" : "off";
 }
 
