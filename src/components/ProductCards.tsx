@@ -1,0 +1,80 @@
+import Link from "next/link";
+import Image from "next/image";
+import { PRODUCTS, formatEur, type ProductId } from "@/lib/products/catalog";
+import type { Prices } from "@/lib/settings";
+
+const VISUAL: Record<ProductId, { img?: string; bg: string; tag: string }> = {
+  newspaper: { bg: "bg-coral/15", tag: "Cumpleaños, bodas, jubilaciones" },
+  escape: { bg: "bg-violet/15", tag: "De 5 años a adultos" },
+  coloring: { img: "/samples/chelsea-infantil.webp", bg: "bg-mint/15", tag: "Mascotas, familia, viajes" },
+};
+
+function MiniNewspaper() {
+  return (
+    <div className="mx-auto w-40 rotate-[-4deg] bg-[#F6F1E4] p-3 shadow-lg" aria-hidden>
+      <div className="border-b-2 border-ink pb-1 text-center font-serif text-[15px] font-black leading-none">El Diario de Marta</div>
+      <div className="mt-2 text-center font-serif text-[13px] font-black leading-tight">¡Marta cumple 40 años!</div>
+      <div className="mt-2 flex gap-1.5">
+        <div className="relative h-14 w-20 overflow-hidden bg-ink/10">
+          <Image src="/samples/chelsea.webp" alt="" fill sizes="80px" className="object-cover grayscale" />
+        </div>
+        <div className="flex-1 space-y-1">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-1 rounded bg-ink/25" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MiniEscape() {
+  return (
+    <div className="mx-auto w-44 rotate-[3deg] rounded-xl bg-white p-3 shadow-lg" aria-hidden>
+      <p className="text-[10px] font-bold tracking-widest text-violet">SOBRE 2</p>
+      <p className="font-display text-sm font-bold leading-tight">Números que hablan</p>
+      <p className="mt-2 rounded-lg bg-violet/10 p-2 text-center text-sm font-black tracking-widest">13-1-16-1</p>
+      <div className="mt-2 flex justify-center gap-1">
+        {[1, 2, 3, 4].map((i) => (
+          <span key={i} className="h-4 w-4 border-b-2 border-ink" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function ProductCards({ prices }: { prices: Prices }) {
+  return (
+    <div className="grid gap-6 md:grid-cols-3">
+      {(Object.keys(PRODUCTS) as ProductId[]).map((id, i) => {
+        const p = PRODUCTS[id];
+        const v = VISUAL[id];
+        return (
+          <article key={id} className="card flex flex-col overflow-hidden animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
+            <div className={`${v.bg} grid h-52 place-items-center p-6`}>
+              {id === "newspaper" ? (
+                <MiniNewspaper />
+              ) : id === "escape" ? (
+                <MiniEscape />
+              ) : (
+                <div className="relative h-40 w-56 rotate-[-2deg] overflow-hidden rounded-xl bg-white shadow-lg">
+                  <Image src={v.img!} alt="Ejemplo de lámina para colorear generada desde una foto" fill sizes="224px" className="object-cover" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-1 flex-col p-6">
+              <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">{v.tag}</p>
+              <h3 className="font-display text-2xl font-bold mt-1">{p.name}</h3>
+              <p className="mt-2 text-ink-soft">{p.short}</p>
+              <p className="mt-4 font-display text-3xl font-black">{formatEur(prices[id])}</p>
+              <div className="mt-auto flex flex-wrap gap-2 pt-5">
+                <Link href={p.editorPath} className="btn btn-primary !py-2.5">Pruébalo gratis</Link>
+                <Link href={p.landingPath} className="btn btn-ghost !py-2.5">Ver más</Link>
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </div>
+  );
+}

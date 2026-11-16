@@ -57,7 +57,7 @@ export const PRODUCTS: Record<ProductId, Product> = {
       "Pistas y comprobación de respuestas",
     ],
     paid: [
-      "Juego completo de 4 a 10 acertijos según la duración",
+      "Juego completo de 4 a 9 acertijos según la duración",
       "Guía del organizador, historia para leer en voz alta y tarjetas de pistas",
       "Soluciones, diploma final y PDF imprimible",
     ],

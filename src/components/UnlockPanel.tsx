@@ -30,7 +30,8 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
     Promise.all([api<{ amount: number }>(`/api/quote?sku=${product}`), api<{ amount: number }>(`/api/quote?sku=pack`)])
       .then(([a, b]) => setPrices({ single: a.amount, pack: b.amount }))
       .catch(() => setPrices({ single: info.defaultPriceCents, pack: PACK.defaultPriceCents }));
-    setPack(getPackCredit());
+    const t = setTimeout(() => setPack(getPackCredit()), 0);
+    return () => clearTimeout(t);
   }, [product, info.defaultPriceCents]);
 
   async function applyPromo() {

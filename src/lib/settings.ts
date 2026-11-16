@@ -13,8 +13,13 @@ export function defaultPrices(): Prices {
 }
 
 export async function getPrices(): Promise<Prices> {
-  const saved = await getStore().get<Partial<Prices>>("settings", "prices");
-  return { ...defaultPrices(), ...(saved ?? {}) };
+  try {
+    const saved = await getStore().get<Partial<Prices>>("settings", "prices");
+    return { ...defaultPrices(), ...(saved ?? {}) };
+  } catch {
+    // Sin base de datos (p. ej. durante la compilación) se usan los precios por defecto.
+    return defaultPrices();
+  }
 }
 
 export async function setPrices(p: Partial<Prices>) {

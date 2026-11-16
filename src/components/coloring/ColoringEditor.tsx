@@ -19,7 +19,6 @@ const MAX_PAGES = 12;
 
 function PreviewImg({ src, alt }: { src: string; alt: string }) {
   const [state, setState] = useState<"loading" | "ok" | "error">("loading");
-  useEffect(() => setState("loading"), [src]);
   return (
     <div className="relative grid aspect-[3/4] place-items-center overflow-hidden rounded-2xl bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -46,7 +45,10 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
   useEffect(() => {
     const id = params.get("p");
     const tok = id ? getToken(id) : "";
-    if (!id || !tok) return setLoading(false);
+    if (!id || !tok) {
+      const t = setTimeout(() => setLoading(false), 0);
+      return () => clearTimeout(t);
+    }
     api<{ project: ProjectDto }>(`/api/projects/${id}`, { token: tok })
       .then((r) => {
         setProject(r.project);
@@ -92,11 +94,12 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
     const room = MAX_PAGES - data.pages.length;
     const list = Array.from(files).slice(0, Math.max(0, room));
     if (!list.length) return setError(`El libro admite hasta ${MAX_PAGES} láminas.`);
-    let { p, tok } = await ensure().catch((e) => {
+    let { p } = await ensure().catch((e) => {
       setError(e.message);
       return { p: null as unknown as ProjectDto, tok: "" };
     });
     if (!p) return;
+    const tok = token || getToken(p.id);
     let pages = [...data.pages];
     for (const f of list) {
       setUploading((n) => n + 1);
@@ -234,7 +237,7 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
               <div className="mt-3 grid grid-cols-[1fr_2fr] gap-3 items-start">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={origUrl(data.pages[active].photoId, 500)} alt="Foto original" className="rounded-2xl" />
-                <PreviewImg src={previewUrl(active)} alt={`Lámina para colorear de la página ${active + 1}`} />
+                <PreviewImg key={previewUrl(active)} src={previewUrl(active)} alt={`Lámina para colorear de la página ${active + 1}`} />
               </div>
               <p className="hint mt-2">Muestra gratuita a 700 px con marca de agua. El libro final se genera a 300 ppp en A4, sin marca de agua.</p>
             </div>

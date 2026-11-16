@@ -46,11 +46,13 @@ export function NewspaperEditor() {
 
   useEffect(() => {
     const id = params.get("p");
-    if (!id) return setLoading(false);
-    const tok = getToken(id);
-    if (!tok) {
-      setError("Este proyecto se creó en otro navegador o dispositivo. Por privacidad, solo se puede abrir desde allí.");
-      return setLoading(false);
+    const tok = id ? getToken(id) : "";
+    if (!id || !tok) {
+      const t = setTimeout(() => {
+        if (id) setError("Este proyecto se creó en otro navegador o dispositivo. Por privacidad, solo se puede abrir desde allí.");
+        setLoading(false);
+      }, 0);
+      return () => clearTimeout(t);
     }
     api<{ project: ProjectDto }>(`/api/projects/${id}`, { token: tok })
       .then((r) => {
@@ -236,8 +238,8 @@ export function NewspaperEditor() {
       )}
 
       <div className="mt-4 flex gap-2 lg:hidden" role="tablist">
-        <button role="tab" aria-selected={tab === "edit"} className="chip flex-1" aria-pressed={tab === "edit"} onClick={() => setTab("edit")}>Editar</button>
-        <button role="tab" aria-selected={tab === "preview"} className="chip flex-1" aria-pressed={tab === "preview"} onClick={() => setTab("preview")}>Vista previa</button>
+        <button role="tab" aria-selected={tab === "edit"} className={`chip flex-1 ${tab === "edit" ? "!bg-ink !text-white" : ""}`} onClick={() => setTab("edit")}>Editar</button>
+        <button role="tab" aria-selected={tab === "preview"} className={`chip flex-1 ${tab === "preview" ? "!bg-ink !text-white" : ""}`} onClick={() => setTab("preview")}>Vista previa</button>
       </div>
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
