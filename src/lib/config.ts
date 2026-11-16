@@ -17,7 +17,7 @@ export const config = {
   ).replace(/\/$/, ""),
   siteName: "REGALUMO",
   slogan: "Crea algo único. Sorprende a alguien especial.",
-  contactEmail: process.env.CONTACT_EMAIL || "hola@regalumo.example",
+  contactEmail: process.env.CONTACT_EMAIL || "oposaprueba@gmail.com",
 
   /** Secreto para firmar tokens (descargas, sesiones de admin, estados de demo). */
   secret: process.env.APP_SECRET || "dev-only-secret-change-me",
