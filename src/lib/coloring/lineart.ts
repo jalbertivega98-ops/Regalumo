@@ -2,8 +2,10 @@ import sharp, { type Sharp } from "sharp";
 
 /**
  * Conversión determinista de foto a lámina para colorear.
- * Algoritmo: suavizado que conserva bordes → diferencia de gaussianas (DoG) →
- * umbral → limpieza de manchas pequeñas → engrosado de líneas según el estilo.
+ * Algoritmo: suavizado que conserva bordes → zonas de color (k-means) con bordes
+ * redondeados (filtro de moda 5x5) y fusión de zonas pequeñas → detalles (ojos,
+ * boca, pliegues) por diferencia de gaussianas, descartando trazos sueltos cortos →
+ * engrosado de líneas según el estilo.
  * No usa ninguna API externa: coste por imagen ≈ unos cientos de ms de CPU.
  */
 export type ColoringStyle = "infantil" | "sencillo" | "detallado";
@@ -15,18 +17,21 @@ export const STYLES: Record<ColoringStyle, { name: string; description: string }
 };
 
 interface Params {
-  work: number; // lado mayor de la resolución de trabajo
-  median: number; // suavizado previo que conserva bordes
-  colors: number; // zonas de color (k-means)
-  minArea: number; // fracción mínima del área total para una zona
-  edges: number; // umbral DoG para detalles extra (0 = sin detalles)
-  thicken: number; // grosor relativo del trazo (en ‰ del lado mayor de salida)
+  work: number;
+  median: number;
+  colors: number;
+  minArea: number;
+  modeR: number;
+  modePasses: number;
+  edges: number; // umbral DoG (0 = sin detalles)
+  minStroke: number; // fracción del lado mayor: trazos de detalle más cortos se descartan
+  thicken: number;
 }
 
 const PARAMS: Record<ColoringStyle, Params> = {
-  infantil: { work: 480, median: 11, colors: 4, minArea: 0.008, edges: 0, thicken: 3.4 },
-  sencillo: { work: 600, median: 9, colors: 6, minArea: 0.003, edges: 0, thicken: 2.2 },
-  detallado: { work: 800, median: 7, colors: 9, minArea: 0.0011, edges: 0, thicken: 1.3 },
+  infantil: { work: 420, median: 9, colors: 4, minArea: 0.012, modeR: 2, modePasses: 4, edges: 11, minStroke: 0.12, thicken: 3.6 },
+  sencillo: { work: 560, median: 9, colors: 5, minArea: 0.005, modeR: 2, modePasses: 3, edges: 9, minStroke: 0.08, thicken: 2.3 },
+  detallado: { work: 760, median: 7, colors: 7, minArea: 0.002, modeR: 2, modePasses: 2, edges: 7, minStroke: 0.05, thicken: 1.4 },
 };
 
 export class ImageInputError extends Error {}
@@ -117,17 +122,18 @@ function quantize(px: Uint8Array, n: number, k: number): Uint8Array {
   return labels;
 }
 
-/** Filtro de moda 3x3: suaviza los bordes entre zonas. */
-function modeFilter(L: Uint8Array, w: number, h: number, k: number) {
+/** Filtro de moda de radio r: redondea los bordes entre zonas. */
+function modeFilter(L: Uint8Array, w: number, h: number, k: number, r: number) {
   const out = new Uint8Array(L);
   const cnt = new Uint16Array(k);
-  for (let y = 1; y < h - 1; y++)
-    for (let x = 1; x < w - 1; x++) {
+  const need = Math.ceil(((2 * r + 1) ** 2) / 2);
+  for (let y = r; y < h - r; y++)
+    for (let x = r; x < w - r; x++) {
       cnt.fill(0);
-      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) cnt[L[(y + dy) * w + x + dx]]++;
+      for (let dy = -r; dy <= r; dy++) { const row = (y + dy) * w + x; for (let dx = -r; dx <= r; dx++) cnt[L[row + dx]]++; }
       let bl = L[y * w + x], bc = 0;
       for (let c = 0; c < k; c++) if (cnt[c] > bc) { bc = cnt[c]; bl = c; }
-      if (bc >= 5) out[y * w + x] = bl;
+      if (bc >= need) out[y * w + x] = bl;
     }
   return out;
 }
@@ -170,8 +176,35 @@ function mergeSmall(L: Uint8Array, w: number, h: number, k: number, minArea: num
   return changed;
 }
 
+/** Quita de la máscara (0 = trazo) los componentes de trazo con menos de minPx píxeles. */
+function dropShortStrokes(mask: Uint8Array, w: number, h: number, minPx: number) {
+  const seen = new Uint8Array(w * h);
+  const stack = new Int32Array(w * h);
+  const members: number[] = [];
+  for (let s = 0; s < w * h; s++) {
+    if (mask[s] !== 0 || seen[s]) continue;
+    let sp = 0;
+    stack[sp++] = s;
+    seen[s] = 1;
+    members.length = 0;
+    while (sp) {
+      const p = stack[--sp];
+      members.push(p);
+      const x = p % w, y = (p - x) / w;
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++) {
+          const nx = x + dx, ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+          const q = ny * w + nx;
+          if (mask[q] === 0 && !seen[q]) { seen[q] = 1; stack[sp++] = q; }
+        }
+    }
+    if (members.length < minPx) for (const p of members) mask[p] = 255;
+  }
+}
+
 async function rawGrey(img: Sharp) {
-  const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await img.extractChannel(0).raw().toBuffer({ resolveWithObject: true });
   return { data, w: info.width, h: info.height };
 }
 
@@ -181,13 +214,15 @@ async function rawGrey(img: Sharp) {
  */
 export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: number): Promise<Buffer> {
   const P = PARAMS[style];
-  const smooth = sharp(input).rotate().resize(P.work, P.work, { fit: "inside" }).removeAlpha().normalise().median(P.median).median(P.median);
+  const smooth = sharp(input).rotate().resize(P.work, P.work, { fit: "inside" }).removeAlpha().normalise()
+    .median(P.median).median(P.median).median(P.median);
   const { data: rgb, info } = await smooth.clone().raw().toBuffer({ resolveWithObject: true });
   const w = info.width, h = info.height, n = w * h;
   let L = quantize(rgb, n, P.colors);
-  for (let i = 0; i < 3; i++) L = modeFilter(L, w, h, P.colors);
+  for (let i = 0; i < P.modePasses; i++) L = modeFilter(L, w, h, P.colors, P.modeR);
   const minArea = Math.max(12, Math.round(n * P.minArea));
-  for (let i = 0; i < 4 && mergeSmall(L, w, h, P.colors, minArea); i++);
+  for (let i = 0; i < 5 && mergeSmall(L, w, h, P.colors, minArea); i++);
+  for (let i = 0; i < 2; i++) L = modeFilter(L, w, h, P.colors, 1);
 
   const out = Buffer.alloc(n, 255);
   for (let y = 0; y < h; y++)
@@ -195,12 +230,15 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
       const p = y * w + x;
       if ((x < w - 1 && L[p] !== L[p + 1]) || (y < h - 1 && L[p] !== L[p + w])) out[p] = 0;
     }
+
   if (P.edges) {
     const pre = await smooth.clone().greyscale().png().toBuffer();
-    const [a, b] = await Promise.all([rawGrey(sharp(pre).blur(1.0)), rawGrey(sharp(pre).blur(2.2))]);
-    for (let i = 0; i < n; i++) if (b.data[i] - a.data[i] > P.edges) out[i] = 0;
+    const [a, b] = await Promise.all([rawGrey(sharp(pre).blur(1.2)), rawGrey(sharp(pre).blur(2.6))]);
+    const det = new Uint8Array(n).fill(255);
+    for (let i = 0; i < n; i++) if (b.data[i] - a.data[i] > P.edges) det[i] = 0;
+    dropShortStrokes(det, w, h, Math.round(Math.max(w, h) * P.minStroke));
+    for (let i = 0; i < n; i++) if (det[i] === 0) out[i] = 0;
   }
-  // Marco limpio
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) out[y * w + x] = 255;
 
   const scale = outSide / Math.max(w, h);

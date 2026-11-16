@@ -19,6 +19,23 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  /**
+   * Con dominio propio (NEXT_PUBLIC_SITE_URL), la dirección *.vercel.app de producción
+   * redirige al dominio para que Google solo indexe una versión. /api queda fuera:
+   * el webhook de Stripe y las descargas no deben recibir redirecciones.
+   */
+  async redirects() {
+    const site = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
+    if (process.env.VERCEL_ENV !== "production" || !site || site.includes(".vercel.app")) return [];
+    return [
+      {
+        source: "/:path((?!api/).*)",
+        has: [{ type: "host", value: "(?<sub>.+)\\.vercel\\.app" }],
+        destination: `${site}/:path`,
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {
