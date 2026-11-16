@@ -60,13 +60,14 @@ function MiniEscape() {
 
 export function ProductCards({ prices }: { prices: Prices }) {
   return (
-    <div className="grid gap-6 md:grid-cols-3">
-      {(Object.keys(PRODUCTS) as ProductId[]).map((id, i) => {
+    <div className="grid gap-6 md:grid-cols-3 lg:gap-8">
+      {(Object.keys(PRODUCTS) as ProductId[]).map((id) => {
         const p = PRODUCTS[id];
         const v = VISUAL[id];
         return (
-          <article key={id} className="card flex flex-col overflow-hidden animate-rise" style={{ animationDelay: `${i * 90}ms` }}>
-            <div className={`${v.bg} grid h-52 place-items-center p-6`}>
+          <article key={id} className="reveal lift card group flex flex-col overflow-hidden">
+            <Link href={p.editorPath} tabIndex={-1} aria-hidden className={`${v.bg} grid h-52 place-items-center overflow-hidden p-6 lg:h-60`}>
+              <div className="lift-img">
               {id === "newspaper" ? (
                 <MiniNewspaper />
               ) : id === "escape" ? (
@@ -74,14 +75,15 @@ export function ProductCards({ prices }: { prices: Prices }) {
               ) : (
                 <MiniColoring />
               )}
-            </div>
+              </div>
+            </Link>
             <div className="flex flex-1 flex-col p-6">
               <p className="text-xs font-bold uppercase tracking-widest text-ink-soft">{v.tag}</p>
               <h3 className="font-display text-2xl font-bold mt-1">{p.name}</h3>
               <p className="mt-2 text-ink-soft">{p.short}</p>
               <p className="mt-4 font-display text-3xl font-black">{formatEur(prices[id])}</p>
               <div className="mt-auto flex flex-wrap gap-2 pt-5">
-                <Link href={p.editorPath} className="btn btn-primary !py-2.5">Pruébalo gratis</Link>
+                <Link href={p.editorPath} className="btn btn-primary !py-2.5">Pruébalo gratis →</Link>
                 <Link href={p.landingPath} className="btn btn-ghost !py-2.5">Ver más</Link>
               </div>
             </div>

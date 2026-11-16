@@ -69,11 +69,11 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
   return (
     <>
       <JsonLd data={{ "@context": "https://schema.org", "@graph": graph }} />
-      <nav aria-label="Migas de pan" className="mx-auto max-w-6xl px-4 pt-6 text-sm text-ink-soft">
+      <nav aria-label="Migas de pan" className="mx-auto max-w-7xl px-4 pt-6 text-sm text-ink-soft">
         <Link href="/" className="underline">Inicio</Link> <span aria-hidden>›</span> <span>{page.eyebrow}</span>
       </nav>
 
-      <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-12 pt-6 lg:grid-cols-2">
+      <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-6 lg:grid-cols-2">
         <div>
           <p className="font-semibold text-coral">{page.eyebrow}</p>
           <h1 className="mt-2 font-display text-4xl font-black leading-tight sm:text-5xl">{page.h1}</h1>
@@ -92,7 +92,7 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
       </section>
 
       {page.visual === "all" && (
-        <section className="mx-auto max-w-6xl px-4 pb-12">
+        <section className="mx-auto max-w-7xl px-4 pb-12">
           <ProductCards prices={prices} />
         </section>
       )}
