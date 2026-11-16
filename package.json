@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:e2e": "rm -rf .data-e2e && playwright test --trace off",
+    "typecheck": "tsc --noEmit",
+    "samples": "tsx scripts/generate-samples.mts"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.3.0",

@@ -42,5 +42,7 @@ next-env.d.ts
 
 # datos locales de desarrollo
 /.data
+/.data-e2e
 /test-results
 /playwright-report
+!.env.example
