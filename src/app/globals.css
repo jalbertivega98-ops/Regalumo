@@ -120,3 +120,58 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
 }
+
+/* ===== Efectos (rediseño) ===== */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes blob {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(30px, -40px) scale(1.08); }
+  66% { transform: translate(-25px, 20px) scale(0.95); }
+}
+@keyframes shine { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(260%) skewX(-20deg); } }
+@keyframes gradient-x { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+@keyframes pop-in { from { opacity: 0; transform: translateY(12px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes wiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-8deg); } 75% { transform: rotate(8deg); } }
+
+.marquee-track { animation: marquee 32s linear infinite; width: max-content; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+.blob { animation: blob 14s ease-in-out infinite; }
+
+.text-gradient {
+  background: linear-gradient(90deg, var(--color-coral), #ff3d7f, var(--color-violet), var(--color-coral));
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: gradient-x 8s ease-in-out infinite;
+}
+
+/* Brillo que cruza el botón principal */
+.btn-primary { position: relative; overflow: hidden; isolation: isolate; }
+.btn-primary::after {
+  content: "";
+  position: absolute; inset: 0 auto 0 0; width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+  transform: translateX(-120%) skewX(-20deg);
+  z-index: -1; pointer-events: none;
+}
+.btn-primary:hover::after { animation: shine 0.9s ease; }
+.btn-shine::after { animation: shine 3.2s ease-in-out 1.2s infinite; }
+
+/* Tarjetas que se elevan */
+.lift { transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s ease; }
+.lift:hover { transform: translateY(-6px); box-shadow: 0 1px 0 var(--color-line), 0 30px 60px -30px rgba(30, 22, 51, 0.45); }
+.lift:hover .lift-img { transform: scale(1.05) rotate(-1deg); }
+.lift-img { transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.lift:hover .wiggle { animation: wiggle 0.5s ease; }
+
+/* Aparición al hacer scroll (sin JavaScript; si el navegador no lo soporta, se ve todo normal) */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: pop-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+.pb-safe { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }

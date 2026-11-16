@@ -5,7 +5,7 @@ import { config } from "@/lib/config";
 export function SiteFooter() {
   return (
     <footer className="mt-24 bg-ink text-white">
-      <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 md:grid-cols-4">
+      <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 md:grid-cols-4">
         <div className="md:col-span-1">
           <div className="[&_span]:text-white">
             <Logo />
@@ -45,7 +45,7 @@ export function SiteFooter() {
         </div>
       </div>
       <div className="border-t border-white/10">
-        <p className="mx-auto max-w-6xl px-4 py-5 text-xs text-white/60">
+        <p className="mx-auto max-w-7xl px-4 py-5 text-xs text-white/60">
           © {new Date().getFullYear()} REGALUMO. Precios en euros con IVA incluido. Productos digitales descargables. Pagos procesados por Stripe.
         </p>
       </div>
