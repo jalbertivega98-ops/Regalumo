@@ -30,6 +30,11 @@ as $$
 $$;
 revoke all on function public.increment_counter(text, bigint) from public, anon, authenticated;
 
+-- Permisos explícitos para el servidor (algunos proyectos nuevos de Supabase no los conceden solos).
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.documents, public.counters to service_role;
+grant execute on function public.increment_counter(text, bigint) to service_role;
+
 -- Limpieza de contadores de límites antiguos (opcional, ejecutar periódicamente).
 -- delete from public.counters where key like 'rl:%' and substring(key from 4 for 10) < to_char(now() - interval '7 days', 'YYYY-MM-DD');
 
