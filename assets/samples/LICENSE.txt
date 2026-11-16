@@ -1,0 +1,3 @@
+Fotografías de ejemplo usadas solo para demostraciones:
+- chelsea.png: gato "Chelsea", CC0, fotógrafo Stefan van der Walt (conjunto de datos de scikit-image).
+- coffee.png: taza de café, CC0, fotógrafa Rachel Michetti (conjunto de datos de scikit-image).

@@ -1,0 +1,143 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { SEO_PAGES, getSeoPage } from "@/content/seo";
+import { config } from "@/lib/config";
+import { getPrices } from "@/lib/settings";
+import { PRODUCTS, formatEur } from "@/lib/products/catalog";
+import { NewspaperShowcase } from "@/components/showcase/NewspaperShowcase";
+import { ColoringShowcase } from "@/components/showcase/ColoringShowcase";
+import { EscapeShowcase } from "@/components/showcase/EscapeShowcase";
+import { escapeSample } from "@/components/showcase/samples";
+import { ProductCards } from "@/components/ProductCards";
+import { Faq } from "@/components/Faq";
+import { JsonLd } from "@/components/JsonLd";
+
+export const dynamicParams = false;
+export const revalidate = 300;
+
+export function generateStaticParams() {
+  return SEO_PAGES.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const page = getSeoPage((await params).slug);
+  if (!page) return {};
+  return {
+    title: page.title,
+    description: page.description,
+    alternates: { canonical: `/${page.slug}` },
+    openGraph: { title: page.title, description: page.description, url: `/${page.slug}`, type: "website" },
+  };
+}
+
+export default async function SeoLanding({ params }: { params: Promise<{ slug: string }> }) {
+  const page = getSeoPage((await params).slug);
+  if (!page) notFound();
+  const prices = await getPrices();
+  const product = page.product === "all" ? null : PRODUCTS[page.product];
+  const href = product ? product.editorPath : "/crear";
+  const url = `${config.siteUrl}/${page.slug}`;
+
+  const graph: object[] = [
+    {
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: "Inicio", item: config.siteUrl },
+        { "@type": "ListItem", position: 2, name: page.eyebrow, item: url },
+      ],
+    },
+    { "@type": "FAQPage", mainEntity: page.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
+  ];
+  if (product) {
+    graph.push({
+      "@type": "Product",
+      name: product.name,
+      description: product.short,
+      brand: { "@type": "Brand", name: "REGALUMO" },
+      url,
+      offers: {
+        "@type": "Offer",
+        price: (prices[product.id] / 100).toFixed(2),
+        priceCurrency: "EUR",
+        availability: "https://schema.org/InStock",
+        url,
+      },
+    });
+  }
+
+  return (
+    <>
+      <JsonLd data={{ "@context": "https://schema.org", "@graph": graph }} />
+      <nav aria-label="Migas de pan" className="mx-auto max-w-6xl px-4 pt-6 text-sm text-ink-soft">
+        <Link href="/" className="underline">Inicio</Link> <span aria-hidden>›</span> <span>{page.eyebrow}</span>
+      </nav>
+
+      <section className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-12 pt-6 lg:grid-cols-2">
+        <div>
+          <p className="font-semibold text-coral">{page.eyebrow}</p>
+          <h1 className="mt-2 font-display text-4xl font-black leading-tight sm:text-5xl">{page.h1}</h1>
+          <p className="mt-4 text-lg text-ink-soft">{page.intro}</p>
+          <div className="mt-6 flex flex-wrap items-center gap-3">
+            <Link href={href} className="btn btn-primary text-lg">{page.cta}</Link>
+            {product && <span className="text-sm text-ink-soft">Prueba gratis · completo por {formatEur(prices[product.id])}</span>}
+          </div>
+        </div>
+        <div>
+          {page.visual === "newspaper" && <NewspaperShowcase compact />}
+          {page.visual === "coloring" && <ColoringShowcase sample={page.slug === "foto-para-colorear" ? "chelsea" : "coffee"} />}
+          {page.visual === "escape" && <EscapeShowcase sample={escapeSample(page.slug === "escape-room-para-imprimir" ? "caesar" : "numbers")} />}
+          {page.visual === "all" && <ColoringShowcase />}
+        </div>
+      </section>
+
+      {page.visual === "all" && (
+        <section className="mx-auto max-w-6xl px-4 pb-12">
+          <ProductCards prices={prices} />
+        </section>
+      )}
+
+      <article className="mx-auto max-w-3xl px-4">
+        {page.sections.map((s) => (
+          <section key={s.h2} className="py-6">
+            <h2 className="font-display text-3xl font-bold">{s.h2}</h2>
+            {s.paragraphs.map((p, i) => (
+              <p key={i} className="mt-3 text-lg leading-relaxed text-ink-soft">{p}</p>
+            ))}
+            {s.bullets && (
+              <ul className="mt-3 space-y-2">
+                {s.bullets.map((b) => (
+                  <li key={b} className="flex gap-3 text-lg"><span aria-hidden className="text-coral">✦</span>{b}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ))}
+        <div className="my-8 rounded-[2rem] bg-ink p-8 text-center text-white">
+          <p className="font-display text-3xl font-black">Pruébalo ahora con tus datos</p>
+          <p className="mt-2 text-white/75">Sin registro y sin tarjeta. Solo pagas si quieres el archivo final.</p>
+          <Link href={href} className="btn btn-primary mt-5">{page.cta}</Link>
+        </div>
+        <section className="py-6">
+          <h2 className="font-display text-3xl font-bold">Preguntas frecuentes</h2>
+          <div className="mt-4">
+            <Faq items={page.faq} />
+          </div>
+        </section>
+        <section className="py-6">
+          <h2 className="font-display text-2xl font-bold">También te puede interesar</h2>
+          <ul className="mt-3 grid gap-3 sm:grid-cols-3">
+            {page.related.map((slug) => {
+              const r = getSeoPage(slug);
+              return r ? (
+                <li key={slug}>
+                  <Link href={`/${slug}`} className="card block p-4 font-semibold hover:text-coral">{r.eyebrow} →</Link>
+                </li>
+              ) : null;
+            })}
+          </ul>
+        </section>
+      </article>
+    </>
+  );
+}
