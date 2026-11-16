@@ -10,7 +10,11 @@ function num(name: string, fallback: number): number {
 }
 
 export const config = {
-  siteUrl: (process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000").replace(/\/$/, ""),
+  /** URL pública. En Vercel, si no se define, usa la dirección de producción del proyecto. */
+  siteUrl: (
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000")
+  ).replace(/\/$/, ""),
   siteName: "REGALUMO",
   slogan: "Crea algo único. Sorprende a alguien especial.",
   contactEmail: process.env.CONTACT_EMAIL || "hola@regalumo.example",
