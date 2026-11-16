@@ -198,7 +198,7 @@ export function NewspaperEditor() {
             </div>
           </div>
           <button className="btn btn-primary w-full text-lg">Crear mi portada gratis</button>
-          <p className="hint text-center">Después podrás añadir fotos, anécdotas y mensajes, y cambiar todos los textos.</p>
+          <p className="hint text-center">En el siguiente paso subes la foto de portada y puedes cambiar todos los textos.</p>
         </form>
       </div>
     );
@@ -244,6 +244,20 @@ export function NewspaperEditor() {
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div className={`space-y-3 ${tab === "preview" ? "hidden lg:block" : ""}`}>
+          {!paid && data.photos.length === 0 && (
+            <button
+              type="button"
+              onClick={() => fileInput.current?.click()}
+              disabled={uploading > 0}
+              className="flex w-full items-center gap-4 rounded-3xl border-2 border-dashed border-coral bg-coral/5 p-5 text-left transition hover:-translate-y-0.5 hover:bg-coral/10"
+            >
+              <span aria-hidden className="grid size-14 shrink-0 place-items-center rounded-2xl bg-coral text-2xl text-white">📷</span>
+              <span>
+                <span className="block font-display text-xl font-bold">{uploading ? "Subiendo foto…" : "Sube la foto de portada"}</span>
+                <span className="hint block">Desde el móvil o el ordenador. Sale en grande junto al titular. Puedes añadir hasta {LIMITS.photos}.</span>
+              </span>
+            </button>
+          )}
           <Section n={1} title="Estilo y ocasión" open>
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(TEMPLATES) as TemplateId[]).map((t) => (
