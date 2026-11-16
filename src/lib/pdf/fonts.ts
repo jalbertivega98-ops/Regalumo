@@ -8,6 +8,8 @@ const dir = () => path.join(process.cwd(), "assets", "fonts");
 export function registerFonts() {
   if (done) return;
   const f = (file: string) => path.join(dir(), file);
+  // Sin guiones automáticos (el separador por defecto es inglés y partía palabras en sitios raros: "d / e").
+  Font.registerHyphenationCallback((word) => [word]);
   Font.register({ family: "Unifraktur", src: f("unifrakturmaguntia-latin-400-normal.woff") });
   Font.register({
     family: "Playfair",

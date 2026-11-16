@@ -163,7 +163,7 @@ export function PrintableView({ p }: { p: Printable }) {
       );
     }
     case "maze": {
-      const size = 460;
+      const size = 400;
       const c = size / Math.max(p.w, p.h);
       const lines: React.ReactElement[] = [];
       p.walls.forEach((wb, i) => {
@@ -297,6 +297,15 @@ function EscapeDoc({ g }: { g: EscapeGame }) {
           <Text style={{ ...s.h1, marginTop: 6 }}>{p.title}</Text>
           <Text style={{ fontSize: 13 }}>{p.instructions}</Text>
           <PrintableView p={p.printable} />
+          <View style={{ flexGrow: 1 }} />
+          <View wrap={false} style={{ borderWidth: 1.5, borderColor: INK, borderRadius: 10, padding: 12, marginTop: 14, marginBottom: 24 }}>
+            <Text style={{ fontWeight: 800, fontSize: 11, color: ACCENT, letterSpacing: 1 }}>VUESTRA RESPUESTA</Text>
+            <View style={{ height: 34, borderBottomWidth: 1, borderColor: MUTED }} />
+            {p.printable.type !== "maze" && <Text style={{ fontSize: 9, color: MUTED, marginTop: 8 }}>Espacio para pensar:</Text>}
+            {(p.printable.type === "maze" ? [] : [0, 1]).map((k) => (
+              <View key={k} style={{ height: 26, borderBottomWidth: 0.6, borderStyle: "dashed", borderColor: MUTED }} />
+            ))}
+          </View>
           <Footer title={g.title} />
         </Page>
       ))}
@@ -373,7 +382,11 @@ function EscapeDoc({ g }: { g: EscapeGame }) {
       <Page size="A4" orientation="landscape" style={{ ...s.page, padding: 30 }}>
         <View style={{ flex: 1, borderWidth: 4, borderColor: ACCENT, borderRadius: 16, padding: 40, alignItems: "center", justifyContent: "center" }}>
           <Text style={{ letterSpacing: 4, fontWeight: 800, color: ACCENT }}>DIPLOMA</Text>
-          <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 34, textAlign: "center", marginTop: 10, lineHeight: 1.25 }}>{g.title}</Text>
+          {g.title.split(": ").map((part, i) => (
+            <Text key={i} style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: i === 0 ? 34 : 24, textAlign: "center", marginTop: i === 0 ? 10 : 4, lineHeight: 1.25 }}>
+              {i === 0 ? part : part.charAt(0).toUpperCase() + part.slice(1)}
+            </Text>
+          ))}
           <Text style={{ fontSize: 15, marginTop: 28, textAlign: "center" }}>Se concede a</Text>
           <View style={{ width: 380, borderBottomWidth: 1.5, borderColor: INK, height: 40 }} />
           <Text style={{ fontSize: 15, marginTop: 20, textAlign: "center" }}>por resolver todos los enigmas con ingenio y trabajo en equipo.</Text>
