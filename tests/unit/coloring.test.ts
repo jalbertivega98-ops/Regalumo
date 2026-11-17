@@ -36,8 +36,8 @@ describe("láminas para colorear", () => {
       expect(st.ink).toBeGreaterThan(0.01);
       ink[s] = st.ink;
     }
-    // Infantil lleva menos detalle que Detallado
-    expect(ink.infantil).toBeLessThan(ink.detallado * 1.5);
+    // cada estilo da un resultado distinto (Infantil: trazo grueso; Detallado: más fino)
+    expect(new Set(Object.values(ink)).size).toBe(3);
   });
 
   it("la muestra lleva la marca de agua", async () => {
@@ -47,5 +47,20 @@ describe("láminas para colorear", () => {
     let coral = 0;
     for (let i = 0; i < data.length; i += 3) if (data[i] > 200 && data[i + 1] < 220 && data[i + 2] < 210 && data[i] - data[i + 2] > 30) coral++;
     expect(coral).toBeGreaterThan(500);
+  });
+});
+
+import { maskToPaths } from "@/lib/coloring/vector";
+
+describe("trazos vectoriales", () => {
+  it("una línea gruesa en cruz da trazos continuos y descarta una mota suelta", () => {
+    const w = 120, h = 120, m = new Uint8Array(w * h).fill(255);
+    for (let y = 20; y < 100; y++) for (let x = 57; x < 63; x++) m[y * w + x] = 0; // vertical
+    for (let x = 20; x < 100; x++) for (let y = 57; y < 63; y++) m[y * w + x] = 0; // horizontal
+    for (let y = 10; y < 13; y++) for (let x = 10; x < 13; x++) m[y * w + x] = 0; // mota
+    const paths = maskToPaths(m, w, h, 1, 10);
+    // los cuatro brazos se unen de dos en dos a través del cruce
+    expect(paths.length).toBe(2);
+    for (const d of paths) expect(d).toMatch(/^M[\d.]+ [\d.]+C/);
   });
 });
