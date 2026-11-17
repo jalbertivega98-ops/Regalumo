@@ -22,6 +22,7 @@
     "@react-pdf/renderer": "^4.9.0",
     "@supabase/supabase-js": "^2.119.0",
     "next": "16.4.6",
+    "onnxruntime-node": "^1.23.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "sharp": "^0.35.5",

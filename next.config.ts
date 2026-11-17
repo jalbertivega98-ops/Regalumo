@@ -6,7 +6,17 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Las fuentes del PDF se leen desde disco en las funciones del servidor.
   outputFileTracingIncludes: {
-    "/api/**/*": ["./assets/fonts/**/*", "./assets/samples/**/*"],
+    "/api/**/*": ["./assets/fonts/**/*", "./assets/samples/**/*", "./assets/models/**/*", "./node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime.so.1"],
+  },
+  // Motor ONNX nativo (separar sujeto y fondo en las láminas). Solo hace falta el binario de Linux x64.
+  serverExternalPackages: ["onnxruntime-node"],
+  outputFileTracingExcludes: {
+    "/**/*": [
+      "./node_modules/onnxruntime-node/bin/napi-v6/darwin/**",
+      "./node_modules/onnxruntime-node/bin/napi-v6/win32/**",
+      "./node_modules/onnxruntime-node/bin/napi-v6/linux/arm64/**",
+      "./node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime_providers_*",
+    ],
   },
   turbopack: {
     rules: {

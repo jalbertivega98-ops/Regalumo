@@ -11,9 +11,9 @@ type Style = ColoringData["style"];
 type ProjectDto = { id: string; data: ColoringData; status: "draft" | "paid"; orderId?: string; photos: string[] };
 
 const STYLE_INFO: Record<Style, { name: string; text: string }> = {
-  infantil: { name: "Infantil", text: "Trazos gruesos y zonas grandes (3-6 años)" },
-  sencillo: { name: "Sencillo", text: "Contornos claros con algo de detalle" },
-  detallado: { name: "Detallado", text: "Más zonas para colorear con calma" },
+  infantil: { name: "Infantil", text: "Solo la persona o mascota, trazo grueso (3-6 años)" },
+  sencillo: { name: "Sencillo", text: "Contornos claros y el fondo simplificado" },
+  detallado: { name: "Detallado", text: "Más detalle y zonas para colorear con calma" },
 };
 const MAX_PAGES = 12;
 
