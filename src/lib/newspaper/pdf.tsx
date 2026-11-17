@@ -168,10 +168,17 @@ function NewspaperDoc({ d, photos, watermark }: { d: NewspaperData; photos: Phot
         </View>
 
         {watermark && (
-          <View fixed style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center" }}>
-            <Text style={{ fontFamily: "Inter", fontWeight: 800, fontSize: 90, color: "#FF6B4A", opacity: 0.22, transform: "rotate(-35deg)" }}>
-              VISTA PREVIA
-            </Text>
+          <View fixed style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+            {Array.from({ length: 9 }).flatMap((_, r) =>
+              Array.from({ length: 4 }).map((_, c) => (
+                <Text
+                  key={`${r}-${c}`}
+                  style={{ position: "absolute", top: r * 140 - 20, left: c * 230 - 60 + (r % 2) * 115, fontFamily: "Inter", fontWeight: 800, fontSize: 30, letterSpacing: 2, color: "#FF6B4A", opacity: 0.28, transform: "rotate(-30deg)" }}
+                >
+                  REGALUMO
+                </Text>
+              )),
+            )}
           </View>
         )}
       </Page>
