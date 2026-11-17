@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { PrintableHtml } from "./PrintableHtml";
+import { Watermark } from "@/components/Watermark";
 import { UnlockPanel } from "@/components/UnlockPanel";
 import { api, getOrderKey, getToken, saveToken } from "@/lib/client";
 import { AGES, DIFFICULTIES, DURATIONS, THEME_OPTIONS, puzzleCount, type AgeId, type Difficulty } from "@/lib/escape/options";
@@ -214,8 +215,9 @@ export function EscapeEditor() {
               <p className="text-sm italic text-ink-soft">{puzzle.chapter}</p>
               <h3 className="font-display text-2xl font-bold mt-1">Reto {step + 1}: {puzzle.title}</h3>
               <p className="mt-2">{puzzle.instructions}</p>
-              <div className="mt-4">
+              <div className="relative mt-4 overflow-hidden">
                 <PrintableHtml p={puzzle.printable} />
+                <Watermark opacity={0.22} size={190} />
               </div>
               {!feedback?.ok ? (
                 <form onSubmit={check} className="mt-5 flex flex-col gap-2 sm:flex-row">

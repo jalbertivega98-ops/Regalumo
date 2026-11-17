@@ -1,4 +1,5 @@
 import sharp from "sharp";
+import { watermarkSvg } from "../brand/watermark";
 
 /**
  * Conversión determinista de foto a lámina para colorear.
@@ -163,19 +164,9 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
   return raw1(smooth, W, H).png({ compressionLevel: 9 }).toBuffer();
 }
 
-/** Marca de agua para las muestras gratuitas. */
+/** Marca de agua para las muestras gratuitas: «REGALUMO» repetido por toda la lámina. */
 export async function watermark(png: Buffer): Promise<Buffer> {
   const meta = await sharp(png).metadata();
-  const w = meta.width ?? 600;
-  const h = meta.height ?? 600;
-  const fs = Math.round(Math.min(w, h) / 9);
-  const svg = Buffer.from(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">
-      <g transform="translate(${w / 2} ${h / 2}) rotate(-30)" font-family="sans-serif" font-weight="800" text-anchor="middle" fill="#FF6B4A" fill-opacity="0.35">
-        <text y="${-fs}" font-size="${fs}">REGALUMO</text>
-        <text y="${fs * 0.6}" font-size="${fs * 0.5}">MUESTRA GRATUITA</text>
-      </g>
-    </svg>`,
-  );
+  const svg = Buffer.from(watermarkSvg(meta.width ?? 600, meta.height ?? 600, 0.32));
   return sharp(png).composite([{ input: svg }]).png().toBuffer();
 }

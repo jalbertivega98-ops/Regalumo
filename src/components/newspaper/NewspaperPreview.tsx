@@ -1,4 +1,5 @@
 "use client";
+import { Watermark } from "@/components/Watermark";
 import "@fontsource/unifrakturmaguntia/400.css";
 import "@fontsource/playfair-display/400.css";
 import "@fontsource/playfair-display/400-italic.css";
@@ -210,13 +211,7 @@ export function NewspaperPreview({
           <span style={{ fontFamily: "Caveat, cursive", fontSize: 20, color: c.template === "moderno" ? t.accent : t.ink }}>{c.signoff || " "}</span>
           <span style={{ fontSize: 8, color: t.muted, alignSelf: "flex-end" }}>{c.occasion} · Ejemplar único</span>
         </div>
-        {watermark && (
-          <div aria-hidden style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", pointerEvents: "none", overflow: "hidden" }}>
-            <div style={{ transform: "rotate(-35deg)", fontFamily: "Inter, sans-serif", fontWeight: 800, fontSize: 90, color: "#FF6B4A", opacity: 0.2, whiteSpace: "nowrap" }}>
-              VISTA PREVIA
-            </div>
-          </div>
-        )}
+        {watermark && <Watermark opacity={0.28} size={420} />}
       </div>
     </div>
   );
