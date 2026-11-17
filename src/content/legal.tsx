@@ -91,6 +91,7 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
           <li>Supabase Inc. (base de datos y almacenamiento privado de archivos), con los datos alojados en la UE (Fráncfort). [Verificar contrato de encargo de tratamiento.]</li>
           <li>Stripe Payments Europe, Ltd. (pagos).</li>
           <li>Resend (correos de compra), si se activa. [Verificar contrato y región.]</li>
+          {config.imageAi.provider === "fal" && <li>Features and Labels, Inc. (fal.ai, EE. UU.): convierte las fotos del libro para colorear en láminas mediante IA. Solo recibe la foto, sin nombre ni otros datos. [Verificar contrato de encargo, garantías de transferencia internacional y que no usa las fotos para entrenar.]</li>}
         </ul>
         <p>No vendemos tus datos ni los usamos para publicidad. Las fotos no se usan para entrenar modelos de IA.</p>
         <h2>Tus derechos</h2>

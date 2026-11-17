@@ -43,7 +43,7 @@ El uso se ve en `/admin/pruebas`.
 
 ## IA de imágenes (no activada)
 
-El estilo "ilustración" del libro para colorear necesitaría una API de generación de imágenes de pago (del orden de 0,02–0,08 € por imagen según proveedor). **No está conectada** y la web lo muestra como "próximamente". Solo se activará con tu autorización, fijando `IMAGE_AI_PROVIDER` e `IMAGE_AI_API_KEY` y un tope de gasto.
+Láminas con IA (opcional): con `IMAGE_AI_PROVIDER=fal` e `IMAGE_AI_API_KEY=<clave de fal.ai>` en Vercel, las láminas se dibujan con FLUX.2 [klein] 4B Edit (≈0,01 $ por megapíxel; una lámina de 1536 px ≈ 0,02 $). La lámina se guarda por foto y estilo, así la muestra y el PDF final son la misma imagen y no se paga dos veces. Si la IA falla o no hay clave, se usa el método propio gratuito. Pon un tope de gasto mensual en la cuenta de fal.ai. Las muestras gratuitas también cuestan (límite por IP: `LIMIT_COLORING_PREVIEWS_PER_IP_DAY`).
 
 ## Qué falta para el lanzamiento comercial
 

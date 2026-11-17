@@ -7,7 +7,7 @@ import { renderNewspaperPdf } from "../newspaper/pdf";
 import { generateGame } from "../escape/generator";
 import { renderEscapePdf } from "../escape/pdf";
 import { coloringSchema } from "../coloring/model";
-import { toLineArt } from "../coloring/lineart";
+import { sheet } from "../coloring/ai";
 import { renderColoringPdf } from "../coloring/pdf";
 import type { ProductId } from "./catalog";
 
@@ -42,14 +42,17 @@ export const FINAL: Record<ProductId, (p: Project) => Promise<{ data: Buffer; fi
   },
   async coloring(p) {
     const d = coloringSchema.parse(p.data);
-    const pages: Buffer[] = [];
-    for (const pg of d.pages) {
-      const buf = await loadPhoto(p.id, pg.photoId);
-      if (buf) pages.push(await toLineArt(buf, pg.style ?? d.style, 3200));
-    }
+    // En paralelo: con IA cada lámina tarda unos segundos.
+    const made = await Promise.all(
+      d.pages.map(async (pg) => {
+        const buf = await loadPhoto(p.id, pg.photoId);
+        return buf ? (await sheet(p.id, pg.photoId, buf, pg.style ?? d.style, 3200)).png : null;
+      }),
+    );
+    const pages = made.filter((b): b is Buffer => !!b);
     if (!pages.length) throw new Error("El libro no tiene páginas");
     const first = await loadPhoto(p.id, d.pages[0].photoId);
-    const cover = first ? await toLineArt(first, "infantil", 1600) : undefined;
+    const cover = first ? (await sheet(p.id, d.pages[0].photoId, first, d.pages[0].style ?? d.style, 1600)).png : undefined;
     const data = await renderColoringPdf({ title: d.title, dedication: d.dedication, pages, cover });
     return { data, filename: `libro-colorear-${slug(d.title)}.pdf` };
   },

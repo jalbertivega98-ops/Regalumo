@@ -2,7 +2,8 @@ import { handle } from "@/lib/http";
 import { HttpError, loadOwned, tokenFrom } from "@/lib/projects";
 import { loadPhoto } from "@/lib/photos";
 import { getFiles } from "@/lib/store";
-import { STYLES, toLineArt, watermark, type ColoringStyle } from "@/lib/coloring/lineart";
+import { STYLES, watermark, type ColoringStyle } from "@/lib/coloring/lineart";
+import { AI_SHEET_COST_MICROEUR, sheet } from "@/lib/coloring/ai";
 import { consume } from "@/lib/security/ratelimit";
 import { config } from "@/lib/config";
 import { track } from "@/lib/analytics";
@@ -25,10 +26,11 @@ export const GET = handle(async (req: Request, { params }: Ctx) => {
     await consume(req, "coloring-preview", config.limits.coloringPreviewsPerIpDay, { global: true });
     const buf = await loadPhoto(p.id, photoId);
     if (!buf) throw new HttpError(404, "Foto no encontrada");
-    png = await watermark(await toLineArt(buf, style, 700));
+    const r = await sheet(p.id, photoId, buf, style, 700);
+    png = await watermark(r.png);
     await getFiles().put(key, png, "image/png");
     await track("free_generation", { product: "coloring" });
-    await track("free_cost_microeur", { product: "coloring", by: PREVIEW_COST_MICROEUR });
+    await track("free_cost_microeur", { product: "coloring", by: r.fresh ? AI_SHEET_COST_MICROEUR : PREVIEW_COST_MICROEUR });
   }
   return new Response(new Uint8Array(png), {
     headers: { "Content-Type": "image/png", "Cache-Control": "private, max-age=3600", "X-Robots-Tag": "noindex" },

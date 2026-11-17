@@ -254,7 +254,6 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
                         </button>
                       ))}
                     </div>
-                    {!aiConfigured && <p className="hint mt-2">El estilo «ilustración con IA» aún no está disponible.</p>}
                   </div>
                 </div>
               </details>
