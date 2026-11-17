@@ -18,7 +18,7 @@ export const STYLES: Record<ColoringStyle, { name: string; description: string }
   detallado: { name: "Detallado", description: "Más líneas y texturas para colorear con calma." },
 };
 
-interface Params {
+export interface Params {
   work: number; // lado mayor de trabajo (px)
   kr: number; // radio del filtro de Kuwahara
   passes: number; // pasadas del filtro
@@ -29,7 +29,7 @@ interface Params {
   thicken: number; // grosor final relativo
 }
 
-const PARAMS: Record<ColoringStyle, Params> = {
+export const PARAMS: Record<ColoringStyle, Params> = {
   infantil: { work: 900, kr: 3, passes: 1, sigma: 1.3, ink: 0.09, floor: -0.8, minPx: 170, thicken: 3 },
   sencillo: { work: 900, kr: 3, passes: 1, sigma: 1.3, ink: 0.1, floor: -0.8, minPx: 140, thicken: 2.2 },
   detallado: { work: 1000, kr: 2, passes: 1, sigma: 1.2, ink: 0.14, floor: -0.5, minPx: 50, thicken: 1.3 },
@@ -84,7 +84,7 @@ function dropShortStrokes(mask: Uint8Array, w: number, h: number, minPx: number)
 }
 
 /** Filtro de Kuwahara (con imágenes integrales): suaviza texturas y conserva bordes. */
-function kuwahara(src: Uint8Array, w: number, h: number, r: number): Uint8Array {
+export function kuwahara(src: Uint8Array, w: number, h: number, r: number): Uint8Array {
   const W = w + 1;
   const S = new Float64Array(W * (h + 1));
   const S2 = new Float64Array(W * (h + 1));
@@ -119,11 +119,8 @@ function kuwahara(src: Uint8Array, w: number, h: number, r: number): Uint8Array 
 
 const grey = (buf: Uint8Array, w: number, h: number) => sharp(Buffer.from(buf), { raw: { width: w, height: h, channels: 1 } });
 
-/**
- * Devuelve un PNG en escala de grises (contornos negros sobre blanco) con el lado mayor = outSide.
- */
-export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: number, tune?: Partial<Params>): Promise<Buffer> {
-  const P = { ...PARAMS[style], ...tune };
+/** Máscara de líneas XDoG (0 = línea) a la resolución de trabajo. */
+export async function xdogMask(input: Buffer, P: Params) {
   const { data, info } = await sharp(input)
     .rotate()
     .resize(P.work, P.work, { fit: "inside" })
@@ -147,12 +144,17 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
   const eps = Math.min(P.floor, sorted[Math.floor(n * P.ink)]);
   const out = new Uint8Array(n).fill(255);
   for (let i = 0; i < n; i++) if (D[i] < eps) out[i] = 0;
-  dropShortStrokes(out, w, h, P.minPx);
+  return { mask: out, w, h };
+}
+
+/** Pasa una máscara de líneas (0 = línea) a PNG final: limpia, escala, engrosa y suaviza. */
+export async function renderMask(out: Uint8Array, w: number, h: number, outSide: number, minPx: number, thicken: number) {
+  dropShortStrokes(out, w, h, minPx);
   for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) out[y * w + x] = 255;
 
   const scale = outSide / Math.max(w, h);
   const W = Math.round(w * scale), H = Math.round(h * scale);
-  const thick = Math.max(0.4, (P.thicken * outSide) / 1000 / 2);
+  const thick = Math.max(0.4, (thicken * outSide) / 1000 / 2);
   // Cada paso en su propia canalización: sharp aplica las operaciones en un orden fijo
   // (y solo un blur), así que encadenarlas en una sola daría un resultado distinto.
   const raw1 = (b: Buffer, ww: number, hh: number) => sharp(b, { raw: { width: ww, height: hh, channels: 1 } });
@@ -162,6 +164,15 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
   const smooth = await raw1(thickened, W, H).blur(Math.max(0.3, outSide / 2400)).toColourspace("b-w").raw().toBuffer();
   for (let i = 0; i < smooth.length; i++) if (smooth[i] > 247) smooth[i] = 255; // papel blanco puro al imprimir
   return raw1(smooth, W, H).png({ compressionLevel: 9 }).toBuffer();
+}
+
+/**
+ * Devuelve un PNG en escala de grises (contornos negros sobre blanco) con el lado mayor = outSide.
+ */
+export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: number, tune?: Partial<Params>): Promise<Buffer> {
+  const P = { ...PARAMS[style], ...tune };
+  const { mask, w, h } = await xdogMask(input, P);
+  return renderMask(mask, w, h, outSide, P.minPx, P.thicken);
 }
 
 /** Marca de agua para las muestras gratuitas: «REGALUMO» repetido por toda la lámina. */
