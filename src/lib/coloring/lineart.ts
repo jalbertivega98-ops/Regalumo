@@ -296,7 +296,7 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
 
   if (!fg) {
     const png = await renderMask(xd, w, h, outSide, P.minPx, P.thicken);
-    return tone ? darkest(png, await renderMask(tone, w, h, outSide, P.minPx, P.thicken * 0.55)) : png;
+    return tone ? darkest(png, await renderMask(tone, w, h, outSide, P.minPx * 2, P.thicken * 0.55)) : png;
   }
 
   const near = await morph(fg, w, h, Math.max(3, w / 150)); // sujeto + un margen
@@ -307,8 +307,8 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
   for (let y = 0; y < h; y++)
     for (let x = 0; x < w; x++) {
       const p = y * w + x;
-      // silueta: borde del sujeto
-      if (fg[p] && ((x > 0 && !fg[p - 1]) || (x < w - 1 && !fg[p + 1]) || (y > 0 && !fg[p - w]) || (y < h - 1 && !fg[p + w]))) subj[p] = 0;
+      // silueta: borde del sujeto, a ambos lados (2 px) para que sea el trazo principal
+      if ((x > 0 && fg[p - 1] !== fg[p]) || (x < w - 1 && fg[p + 1] !== fg[p]) || (y > 0 && fg[p - w] !== fg[p]) || (y < h - 1 && fg[p + w] !== fg[p])) subj[p] = 0;
       if (xd[p] === 0) {
         if (inner[p]) subj[p] = 0;
         else if (!near[p] && P.bg !== "none") back[p] = 0;
@@ -317,7 +317,7 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
     }
   let png = await renderMask(subj, w, h, outSide, Math.round(P.minPx * 0.6), P.thicken);
   // Zonas de tono con trazo más fino: detalle secundario que no compite con los contornos.
-  if (tone) png = await darkest(png, await renderMask(toneL, w, h, outSide, P.minPx, P.thicken * 0.55));
+  if (tone) png = await darkest(png, await renderMask(toneL, w, h, outSide, P.minPx * 2, P.thicken * 0.55));
   if (P.bg === "none") return png;
   // Fondo más fino y solo con trazos largos (Sencillo) para que el sujeto destaque.
   return darkest(png, await renderMask(back, w, h, outSide, Math.round(560 * (P.work / 900)), P.thicken * 0.6));
