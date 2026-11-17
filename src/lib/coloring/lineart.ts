@@ -1,6 +1,7 @@
 import sharp from "sharp";
 import { watermarkSvg } from "../brand/watermark";
 import { subjectMask } from "./subject";
+import { maskToPaths, svgDoc } from "./vector";
 
 /**
  * Conversión determinista de foto a lámina para colorear.
@@ -32,12 +33,13 @@ export interface Params {
   thicken: number; // grosor final relativo
   toneN: number; // niveles de tono para las zonas de color (0 = sin zonas)
   bg: "none" | "simple"; // si se dibuja el fondo (simplificado) cuando se detecta un sujeto
+  minStroke: number; // trazos sueltos más cortos que esta fracción del lado mayor se quitan
 }
 
 export const PARAMS: Record<ColoringStyle, Params> = {
-  infantil: { work: 900, kr: 3, passes: 1, sigma: 1.3, ink: 0.09, floor: -0.8, minPx: 170, thicken: 3, toneN: 0, bg: "none" },
-  sencillo: { work: 900, kr: 3, passes: 1, sigma: 1.3, ink: 0.1, floor: -0.8, minPx: 140, thicken: 2.2, toneN: 3, bg: "simple" },
-  detallado: { work: 1000, kr: 2, passes: 1, sigma: 1.2, ink: 0.13, floor: -0.5, minPx: 70, thicken: 1.6, toneN: 4, bg: "simple" },
+  infantil: { work: 900, kr: 3, passes: 1, sigma: 1.3, ink: 0.09, floor: -0.8, minPx: 170, thicken: 3, toneN: 0, bg: "none", minStroke: 0.01 },
+  sencillo: { work: 900, kr: 3, passes: 1, sigma: 1.3, ink: 0.1, floor: -0.8, minPx: 140, thicken: 2.2, toneN: 3, bg: "simple", minStroke: 0.01 },
+  detallado: { work: 1000, kr: 2, passes: 1, sigma: 1.2, ink: 0.13, floor: -0.5, minPx: 70, thicken: 1.6, toneN: 4, bg: "simple", minStroke: 0.008 },
 };
 
 export class ImageInputError extends Error {}
@@ -269,14 +271,6 @@ async function toneMask(input: Buffer, w: number, h: number, N: number) {
   return out;
 }
 
-/** Combina dos PNG de líneas (se queda con el más oscuro de cada píxel). */
-async function darkest(a: Buffer, b: Buffer) {
-  const A = await sharp(a).extractChannel(0).raw().toBuffer({ resolveWithObject: true });
-  const B = await sharp(b).extractChannel(0).raw().toBuffer();
-  for (let i = 0; i < A.data.length; i++) if (B[i] < A.data[i]) A.data[i] = B[i];
-  return sharp(A.data, { raw: { width: A.info.width, height: A.info.height, channels: 1 } }).png({ compressionLevel: 9 }).toBuffer();
-}
-
 /**
  * Devuelve un PNG en escala de grises (contornos negros sobre blanco) con el lado mayor = outSide.
  *
@@ -293,10 +287,12 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
   const n = w * h;
   const fg = await cleanSubject(input, w, h);
   const tone = P.toneN > 1 ? await toneMask(input, w, h, P.toneN) : null;
+  const layers: Layer[] = [];
 
   if (!fg) {
-    const png = await renderMask(xd, w, h, outSide, P.minPx, P.thicken);
-    return tone ? darkest(png, await renderMask(tone, w, h, outSide, P.minPx * 2, P.thicken * 0.55)) : png;
+    layers.push({ mask: xd, minPx: P.minPx, width: 1 });
+    if (tone) layers.push({ mask: tone, minPx: P.minPx * 2, width: 0.55 });
+    return renderLayers(layers, w, h, outSide, P.thicken, P.minStroke);
   }
 
   const near = await morph(fg, w, h, Math.max(3, w / 150)); // sujeto + un margen
@@ -315,12 +311,32 @@ export async function toLineArt(input: Buffer, style: ColoringStyle, outSide: nu
       }
       if (tone && tone[p] === 0 && inner[p]) toneL[p] = 0;
     }
-  let png = await renderMask(subj, w, h, outSide, Math.round(P.minPx * 0.6), P.thicken);
+  layers.push({ mask: subj, minPx: Math.round(P.minPx * 0.6), width: 1 });
   // Zonas de tono con trazo más fino: detalle secundario que no compite con los contornos.
-  if (tone) png = await darkest(png, await renderMask(toneL, w, h, outSide, P.minPx * 2, P.thicken * 0.55));
-  if (P.bg === "none") return png;
-  // Fondo más fino y solo con trazos largos (Sencillo) para que el sujeto destaque.
-  return darkest(png, await renderMask(back, w, h, outSide, Math.round(560 * (P.work / 900)), P.thicken * 0.6));
+  if (tone) layers.push({ mask: toneL, minPx: P.minPx * 2, width: 0.55 });
+  // Fondo más fino y solo con trazos largos para que el sujeto destaque.
+  if (P.bg !== "none") layers.push({ mask: back, minPx: Math.round(560 * (P.work / 900)), width: 0.6 });
+  return renderLayers(layers, w, h, outSide, P.thicken, P.minStroke);
+}
+
+type Layer = { mask: Uint8Array; minPx: number; width: number };
+
+/**
+ * Dibuja las capas como trazos vectoriales lisos de grosor uniforme (vector.ts) y las rasteriza
+ * al tamaño final: líneas nítidas a cualquier resolución de impresión.
+ */
+async function renderLayers(layers: Layer[], w: number, h: number, outSide: number, thicken: number, minStroke: number) {
+  const s = outSide / Math.max(w, h);
+  const W = Math.round(w * s), H = Math.round(h * s);
+  const base = (thicken * outSide) / 1000 * 2.3; // grosor del trazo principal en px de salida
+  const vec = layers.map((l) => {
+    dropShortStrokes(l.mask, w, h, l.minPx);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) if (x < 2 || y < 2 || x >= w - 2 || y >= h - 2) l.mask[y * w + x] = 255;
+    return { paths: maskToPaths(l.mask, w, h, s, minStroke * Math.max(w, h)), width: Math.max(1.5, base * l.width) };
+  });
+  const { data, info } = await sharp(Buffer.from(svgDoc(W, H, vec))).greyscale().toColourspace("b-w").raw().toBuffer({ resolveWithObject: true });
+  for (let i = 0; i < data.length; i++) if (data[i] > 247) data[i] = 255; // papel blanco puro al imprimir
+  return sharp(data, { raw: { width: info.width, height: info.height, channels: 1 } }).png({ compressionLevel: 9 }).toBuffer();
 }
 
 /** Marca de agua para las muestras gratuitas: «REGALUMO» repetido por toda la lámina. */
