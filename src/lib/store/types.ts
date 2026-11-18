@@ -6,7 +6,8 @@ export type Collection =
   | "errors"
   | "outbox"
   | "feedback"
-  | "requests";
+  | "requests"
+  | "customers";
 
 export interface Store {
   get<T>(col: Collection, id: string): Promise<T | null>;

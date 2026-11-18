@@ -62,6 +62,14 @@ const nextConfig: NextConfig = {
         source: "/(crear|pedido|admin|api)/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
+      {
+        // "Mis pedidos" lleva el enlace mágico en la URL: ni indexar ni enviarlo como referer.
+        source: "/mis-pedidos",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
     ];
   },
 };
