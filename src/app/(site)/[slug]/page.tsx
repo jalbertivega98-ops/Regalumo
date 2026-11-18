@@ -10,6 +10,7 @@ import { ColoringShowcase } from "@/components/showcase/ColoringShowcase";
 import { EscapeShowcase } from "@/components/showcase/EscapeShowcase";
 import { escapeSample } from "@/components/showcase/samples";
 import { ProductCards } from "@/components/ProductCards";
+import { ProductVideo } from "@/components/ProductVideo";
 import { Faq } from "@/components/Faq";
 import { JsonLd } from "@/components/JsonLd";
 
@@ -73,7 +74,7 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
         <Link href="/" className="underline">Inicio</Link> <span aria-hidden>›</span> <span>{page.eyebrow}</span>
       </nav>
 
-      <section className="mx-auto grid max-w-7xl items-center gap-10 px-4 pb-12 pt-6 lg:grid-cols-2">
+      <section className="mx-auto grid max-w-7xl items-center gap-6 px-4 pb-12 pt-4 lg:grid-cols-2 lg:gap-10 lg:pt-6">
         <div>
           <p className="font-semibold text-coral">{page.eyebrow}</p>
           <h1 className="mt-2 font-display text-4xl font-black leading-tight sm:text-5xl">{page.h1}</h1>
@@ -83,13 +84,19 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
             {product && <span className="text-sm text-ink-soft">Prueba gratis · completo por {formatEur(prices[product.id])}</span>}
           </div>
         </div>
-        <div>
+        <div className={product ? "order-first lg:order-none" : undefined}>
+          {product ? <ProductVideo product={product.id} /> : <ColoringShowcase />}
+        </div>
+      </section>
+
+      {product && (
+        <section className="mx-auto max-w-5xl px-4 pb-12">
+          <h2 className="mb-4 text-center font-display text-3xl font-bold">Un ejemplo de cómo queda</h2>
           {page.visual === "newspaper" && <NewspaperShowcase compact />}
           {page.visual === "coloring" && <ColoringShowcase sample={page.slug === "foto-para-colorear" ? "chelsea" : "coffee"} />}
           {page.visual === "escape" && <EscapeShowcase sample={escapeSample(page.slug === "escape-room-para-imprimir" ? "caesar" : "numbers")} />}
-          {page.visual === "all" && <ColoringShowcase />}
-        </div>
-      </section>
+        </section>
+      )}
 
       {page.visual === "all" && (
         <section className="mx-auto max-w-7xl px-4 pb-12">
