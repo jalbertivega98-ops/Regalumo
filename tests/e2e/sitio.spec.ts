@@ -9,6 +9,11 @@ const SEO = [
   "/regalos-personalizados",
   "/foto-para-colorear",
   "/libro-para-colorear-personalizado",
+  "/regalo-personalizado-con-foto",
+  "/laminas-para-colorear-con-foto",
+  "/regalos-de-navidad-personalizados",
+  "/regalo-de-ultima-hora",
+  "/regalo-de-aniversario-original",
 ];
 
 test("la portada muestra eslogan, productos y precios", async ({ page }) => {
@@ -28,13 +33,26 @@ for (const path of SEO) {
     expect(await page.locator('meta[name="robots"][content*="noindex"]').count()).toBe(0);
     const ld = await page.locator('script[type="application/ld+json"]').allTextContents();
     expect(ld.join(" ")).toContain("BreadcrumbList");
+    // Imagen para compartir propia y que de verdad existe.
+    const og = await page.locator('meta[property="og:image"]').getAttribute("content");
+    expect(og).toContain(`/og${path}`);
+    const img = await page.request.get(new URL(og!).pathname);
+    expect(img.status()).toBe(200);
+    expect(img.headers()["content-type"]).toContain("image/png");
   });
 }
+
+test("la portada tiene imagen para compartir y enlaza a todas las guías", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", /\/opengraph-image$/);
+  await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute("content", "REGALUMO");
+  for (const p of SEO) expect(await page.locator(`#ideas a[href="${p}"]`).count()).toBe(1);
+});
 
 test("sitemap y robots: públicas dentro, privadas fuera", async ({ request }) => {
   const sitemap = await (await request.get("/sitemap.xml")).text();
   for (const p of SEO) expect(sitemap).toContain(p);
-  expect(sitemap).not.toMatch(/\/crear\/|\/pedido|\/admin|\/api/);
+  expect(sitemap).not.toMatch(/\/crear|\/pedido|\/admin|\/api/);
   const robots = await (await request.get("/robots.txt")).text();
   expect(robots).toMatch(/Disallow: \/api\//);
   expect(robots).toMatch(/Disallow: \/pedido\//);

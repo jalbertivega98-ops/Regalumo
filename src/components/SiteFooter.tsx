@@ -27,7 +27,12 @@ export function SiteFooter() {
           <ul className="space-y-2 text-white/80 text-sm">
             <li><Link href="/libro-para-colorear-personalizado">Libro para colorear personalizado</Link></li>
             <li><Link href="/foto-para-colorear">Convertir foto para colorear</Link></li>
+            <li><Link href="/laminas-para-colorear-con-foto">Láminas para colorear con tu foto</Link></li>
             <li><Link href="/regalos-personalizados">Regalos personalizados</Link></li>
+            <li><Link href="/regalo-personalizado-con-foto">Regalo personalizado con foto</Link></li>
+            <li><Link href="/regalos-de-navidad-personalizados">Regalos de Navidad</Link></li>
+            <li><Link href="/regalo-de-aniversario-original">Regalo de aniversario</Link></li>
+            <li><Link href="/regalo-de-ultima-hora">Regalo de última hora</Link></li>
             <li><Link href="/#precios">Precios</Link></li>
             <li><Link href="/#preguntas">Preguntas frecuentes</Link></li>
           </ul>

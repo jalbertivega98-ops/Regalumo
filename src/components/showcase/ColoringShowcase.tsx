@@ -9,14 +9,15 @@ const STYLES = [
 ] as const;
 
 /** Antes / después con un deslizador. Imágenes reales generadas por el algoritmo del producto. */
-export function ColoringShowcase({ sample = "coffee" }: { sample?: "chelsea" | "coffee" }) {
+/** `eager`: la lámina es lo primero que se ve (parte alta de la página); se carga ya para que la página sea más rápida para Google. */
+export function ColoringShowcase({ sample = "coffee", eager = false }: { sample?: "chelsea" | "coffee"; eager?: boolean }) {
   const [style, setStyle] = useState<(typeof STYLES)[number]["id"]>("sencillo");
   const [pos, setPos] = useState(50);
   const [img, setImg] = useState(sample);
   return (
     <div>
       <div className="relative mx-auto aspect-[3/2] w-full max-w-lg overflow-hidden rounded-3xl bg-white shadow-xl select-none">
-        <Image src={`/samples/${img}-${style}.webp`} alt="Lámina para colorear generada a partir de la foto" fill sizes="(max-width: 640px) 100vw, 512px" className="object-cover" />
+        <Image src={`/samples/${img}-${style}.webp`} alt="Lámina para colorear generada a partir de la foto" fill sizes="(max-width: 640px) 100vw, 512px" className="object-cover" loading={eager ? "eager" : undefined} fetchPriority={eager ? "high" : undefined} />
         <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pos}% 0 0)` }}>
           <Image src={`/samples/${img}.webp`} alt="Foto original" fill sizes="(max-width: 640px) 100vw, 512px" className="object-cover" />
         </div>
