@@ -5,7 +5,8 @@ import { HttpError, saveProject, type Project } from "../projects";
 import { PACK, PRODUCTS, PRODUCT_IDS, formatEur, type ProductId, type SkuId } from "../products/catalog";
 import { getPrices, findPromo, type Promo } from "../settings";
 import { randomId, sign, verify } from "../security/tokens";
-import { track } from "../analytics";
+import { bump, track } from "../analytics";
+import type { SourceId } from "../traffic";
 import { purchaseEmail, sendEmail } from "../email/send";
 
 export interface OrderItem {
@@ -31,6 +32,9 @@ export interface Order {
   createdAt: string;
   paidAt?: string;
   livemode?: boolean;
+  /** Origen de la visita en la que se compró («google», «tiktok»…) y campaña utm, para el embudo. */
+  source?: SourceId;
+  campaign?: string;
 }
 
 export const DOWNLOAD_DAYS = 30;
@@ -78,7 +82,7 @@ export async function quote(sku: SkuId, promoCode?: string) {
 }
 
 /** Crea el pedido y la sesión de pago. Devuelve la URL a la que redirigir. */
-export async function startCheckout(opts: { project: Project; sku: SkuId; promoCode?: string; email?: string; consent: boolean }) {
+export async function startCheckout(opts: { project: Project; sku: SkuId; promoCode?: string; email?: string; consent: boolean; source?: SourceId; campaign?: string }) {
   const { project, sku } = opts;
   if (!opts.consent) throw new HttpError(400, "Debes aceptar el suministro inmediato del contenido digital para continuar.");
   if (project.status === "paid") throw new HttpError(409, "Este proyecto ya está pagado.");
@@ -103,6 +107,8 @@ export async function startCheckout(opts: { project: Project; sku: SkuId; promoC
     email: opts.email,
     digitalConsentAt: new Date().toISOString(),
     createdAt: new Date().toISOString(),
+    source: opts.source,
+    campaign: opts.campaign,
   };
   const successUrl = orderUrl(id);
   const name = sku === "pack" ? PACK.name : PRODUCTS[sku].name;
@@ -177,6 +183,9 @@ export async function fulfillOrder(orderId: string, payment: { amountTotal: numb
   }
   await track("purchase", { product: order.sku });
   await track("revenue_cents", { product: order.sku, by: order.amountCents });
+  const src = order.source ?? "directo";
+  await bump(["f:paid", `f:paid:${order.sku}`, `fs:${src}:paid`, ...(order.campaign ? [`campp:${src}|${order.campaign}`] : [])]);
+  await bump([`rev:${src}`], { by: order.amountCents });
 
   if (order.email) {
     const items = order.sku === "pack" ? [PACK.name] : [PRODUCTS[order.sku].name];

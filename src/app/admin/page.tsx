@@ -51,7 +51,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       </section>
 
       <section>
-        <h2 className="mb-3 font-display text-xl font-bold">Embudo y pruebas gratuitas</h2>
+        <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
+          <h2 className="font-display text-xl font-bold">Embudo y pruebas gratuitas</h2>
+          <a href={`/admin/visitas?dias=${days}`} className="text-sm font-semibold text-violet underline">Ver de dónde vienen y dónde se van →</a>
+        </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat label="Sesiones" value={sessions} />
           <Stat label="Páginas vistas" value={totals["pageview"] ?? 0} />

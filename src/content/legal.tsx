@@ -79,7 +79,7 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
           <li><b>Contenido de tus proyectos</b> (textos, nombres, fechas y fotografías): para generar la vista previa y el producto que solicitas. Base jurídica: ejecución de la solicitud del usuario y, en su caso, del contrato (art. 6.1.b RGPD).</li>
           <li><b>Datos de compra</b> (correo electrónico, importe, identificadores de pago): para gestionar el pedido, enviarte el enlace de descarga y cumplir obligaciones contables y fiscales (art. 6.1.b y 6.1.c RGPD).</li>
           <li><b>Datos técnicos</b>: la dirección IP se transforma en un identificador cifrado que cambia cada día, solo para limitar abusos de las pruebas gratuitas (interés legítimo, art. 6.1.f RGPD). No guardamos la IP en claro.</li>
-          <li><b>Estadísticas</b>: contadores agregados de visitas y uso, sin cookies ni identificadores personales.</li>
+          <li><b>Estadísticas</b>: contadores agregados por día de visitas y uso (página vista, tipo de dispositivo móvil u ordenador, y el tipo de origen de la visita, como «Google» o «TikTok», o la etiqueta utm del enlace), sin cookies, sin guardar la IP ni la dirección exacta de procedencia y sin identificadores personales. Si compras, el pedido guarda también ese tipo de origen y etiqueta (por ejemplo «Pinterest») para saber qué canales funcionan.</li>
         </ul>
         <h2>Fotografías de terceras personas y de menores</h2>
         <p>Si subes fotos en las que aparecen otras personas, debes contar con su permiso; en el caso de menores, con el de sus padres, madres o tutores. Las fotos se usan exclusivamente para crear tu producto.</p>
@@ -109,7 +109,7 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
         <ul>
           <li><b>rg_admin</b> (cookie técnica): solo en el panel de administración, para mantener la sesión del personal autorizado. Duración: 12 horas.</li>
           <li><b>Almacenamiento local del navegador</b> (técnico): guarda la llave de tus proyectos y pedidos en tu propio dispositivo para que solo tú puedas abrirlos sin necesidad de registrarte. No se envía a terceros. Puedes borrarlo desde la configuración del navegador.</li>
-          <li><b>sessionStorage</b>: una marca para contar una sesión por pestaña en las estadísticas agregadas. No identifica a nadie.</li>
+          <li><b>sessionStorage</b>: marcas que se borran al cerrar la pestaña para contar una sola vez cada visita y cada paso (abrir un producto, ver la muestra, ir a pagar) en las estadísticas agregadas, y el tipo de origen de la visita (por ejemplo «Google»). No identifica a nadie ni se envía ningún identificador.</li>
           <li><b>Stripe</b>: al pagar, la pasarela de Stripe puede usar sus propias cookies técnicas para prevenir el fraude, en su propio dominio.</li>
         </ul>
         <p>Estas tecnologías son necesarias para prestar el servicio solicitado, supuesto exceptuado del consentimiento según el art. 22.2 LSSI. [Confirmar con asesoría la calificación de cada elemento.]</p>

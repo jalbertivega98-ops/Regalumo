@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 
 const NAV = [
   ["/admin", "Resumen"],
+  ["/admin/visitas", "Visitas y embudo"],
   ["/admin/pedidos", "Pedidos"],
   ["/admin/clientes", "Clientes"],
   ["/admin/productos", "Productos y precios"],
