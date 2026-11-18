@@ -81,7 +81,7 @@ export function OrderStatus({ id, k, emails = false, contact }: { id: string; k:
           <p className="font-bold">Guarda este enlace: es tu acceso privado de descarga durante 30 días.</p>
           <p className="mt-1 text-sm text-ink-soft">
             {emails
-              ? "Si dejaste tu correo, también te lo hemos enviado."
+              ? <>También te lo hemos enviado por correo. Si lo pierdes, recupéralo en <Link className="underline" href="/mis-pedidos">Mis pedidos</Link> con tu email.</>
               : "Cópialo o añade esta página a favoritos. Si lo pierdes, escríbenos" + (contact ? ` a ${contact}` : "") + " con el correo con el que pagaste."}
           </p>
           <div className="mt-3"><CopyLink /></div>

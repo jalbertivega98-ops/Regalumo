@@ -7,6 +7,7 @@ import { getPrices, findPromo, type Promo } from "../settings";
 import { randomId, sign, verify } from "../security/tokens";
 import { track } from "../analytics";
 import { purchaseEmail, sendEmail } from "../email/send";
+import { linkOrderToCustomer } from "../customers";
 
 export interface OrderItem {
   product: ProductId;
@@ -161,6 +162,7 @@ export async function fulfillOrder(orderId: string, payment: { amountTotal: numb
   order.paymentIntent = payment.paymentIntent;
   order.livemode = !!payment.livemode;
   await store.put("orders", order.id, order);
+  await linkOrderToCustomer(order);
 
   for (const it of order.items) {
     if (!it.projectId) continue;
@@ -180,7 +182,7 @@ export async function fulfillOrder(orderId: string, payment: { amountTotal: numb
 
   if (order.email) {
     const items = order.sku === "pack" ? [PACK.name] : [PRODUCTS[order.sku].name];
-    await sendEmail(order.email, "Tu regalo de REGALUMO está listo", purchaseEmail({ orderUrl: orderUrl(order.id), items, total: formatEur(order.amountCents) }));
+    await sendEmail(order.email, "Tu regalo de REGALUMO está listo", purchaseEmail({ orderUrl: orderUrl(order.id), myOrdersUrl: `${config.siteUrl}/mis-pedidos`, items, total: formatEur(order.amountCents) }));
   }
   return order;
 }
