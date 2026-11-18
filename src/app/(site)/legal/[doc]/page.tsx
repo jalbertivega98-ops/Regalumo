@@ -19,9 +19,6 @@ export default async function Legal({ params }: { params: Promise<{ doc: string 
   if (!d) notFound();
   return (
     <div className="mx-auto max-w-3xl px-4 py-12">
-      <p className="mb-6 rounded-2xl border-2 border-dashed border-sun bg-sun/15 p-4 text-sm font-semibold">
-        Borrador pendiente de revisión legal. Los datos entre corchetes deben completarse antes de publicar la web comercialmente.
-      </p>
       <h1 className="font-display text-4xl font-black">{d.title}</h1>
       <div className="prose-legal mt-6">{d.body}</div>
       {doc === "privacidad" && (

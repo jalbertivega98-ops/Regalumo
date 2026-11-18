@@ -55,7 +55,7 @@ El estilo "ilustración" del libro para colorear necesitaría una API de generac
 | 4 | Despliegue en Vercel (plan Pro) | Propietario | |
 | 5 | Comprobación de marca y compra del dominio | Propietario | Ver MARCA.md: no se pudo verificar desde aquí. |
 | 6 | Resend con dominio verificado | Propietario | Sin él no se envían correos (el enlace de descarga sí funciona). |
-| 7 | Revisión legal de los textos y datos del titular (nombre, NIF, dirección) | Abogado/asesoría | Los textos son borradores y lo indican en la página. No se afirma el cumplimiento de ninguna norma. |
+| 7 | Revisión legal de los textos | Abogado/asesoría (opcional) | Los textos legales siguen el mismo formato que oposaprueba.com (titular REGALUMO, correo y web). Si se quiere cumplir el art. 10 LSSI al completo, faltaría añadir nombre o razón social, NIF y domicilio en `src/content/legal.tsx`. |
 | 8 | Régimen de IVA y facturación | Asesoría | Stripe puede emitir recibos; las facturas completas requieren configuración adicional. |
 | 9 | Verificación de Stripe para cobros reales y `ALLOW_LIVE_PAYMENTS=true` | Propietario | Solo con autorización expresa. |
 | 10 | Google Search Console y Bing Webmaster | Propietario | Ver SEO.md. |
