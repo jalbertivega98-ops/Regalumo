@@ -6,6 +6,7 @@ import { Rating } from "@/components/Rating";
 import { DeleteProject } from "@/components/DeleteProject";
 import { api, getOrderKey, getToken, saveToken } from "@/lib/client";
 import { coloringSchema, type ColoringData } from "@/lib/coloring/model";
+import { trackStep } from "@/lib/track-client";
 
 type Style = ColoringData["style"];
 type ProjectDto = { id: string; data: ColoringData; status: "draft" | "paid"; orderId?: string; photos: string[] };
@@ -124,7 +125,8 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
         setData(next);
         setProject(p);
         persist(p, tok, next);
-        fetch("/api/track", { method: "POST", body: JSON.stringify({ event: "preview", product: "coloring" }) }).catch(() => {});
+        trackStep("upload", "coloring");
+        trackStep("preview", "coloring");
       } catch (e) {
         setError((e as Error).message);
       } finally {

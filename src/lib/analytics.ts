@@ -33,9 +33,23 @@ export async function track(event: EventName, opts: { product?: string; by?: num
   }
 }
 
+/**
+ * Suma 1 (o `by`) a varios contadores del día a la vez. Las claves son categorías cerradas
+ * (origen, página, paso del embudo), nunca datos de una persona.
+ */
+export async function bump(keys: string[], opts: { by?: number; day?: string } = {}) {
+  const store = getStore();
+  const day = opts.day ?? today();
+  try {
+    await Promise.all(keys.map((k) => store.incr(`stat:${day}:${k}`, opts.by ?? 1)));
+  } catch (e) {
+    console.error("[analytics]", e);
+  }
+}
+
 export async function statsSince(days: number) {
-  const all = await getStore().counters("stat:");
-  const from = new Date(Date.now() - days * 86400000).toISOString().slice(0, 10);
+  const from = new Date(Date.now() - (days - 1) * 86400000).toISOString().slice(0, 10);
+  const all = await getStore().counters("stat:", `stat:${from}`);
   const totals: Record<string, number> = {};
   const byDay: Record<string, Record<string, number>> = {};
   for (const [k, v] of Object.entries(all)) {

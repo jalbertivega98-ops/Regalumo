@@ -87,13 +87,14 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
           <li><b>Tus proyectos</b>: textos, nombres, fechas y fotografías que subes para crear el producto.</li>
           <li><b>Compras</b>: qué compraste, importe, estado del pago y, si lo das, tu correo electrónico. Los datos de la tarjeta los trata solo Stripe.</li>
           <li><b>Solicitudes</b>: tu correo y tu mensaje si nos escribes o usas el formulario de esta página.</li>
-          <li><b>Técnicos</b>: para limitar abusos de las pruebas gratuitas, tu dirección IP se convierte en un código cifrado que cambia cada día; nunca guardamos la IP en claro. La estadística de visitas es agregada, sin cookies ni identificadores personales.</li>
+          <li><b>Técnicos</b>: para limitar abusos de las pruebas gratuitas, tu dirección IP se convierte en un código cifrado que cambia cada día; nunca guardamos la IP en claro. La estadística de visitas es agregada por día (página vista, móvil u ordenador y tipo de origen de la visita, como «Google» o «TikTok», o la etiqueta utm del enlace), sin cookies ni identificadores personales. Si compras, el pedido guarda también ese tipo de origen (por ejemplo «Pinterest»).</li>
         </ul>
         <h2>Para qué y con qué base legal</h2>
         <ul>
           <li>Crear la vista previa y el producto que pides, cobrarlo y entregarlo: ejecución del contrato.</li>
           <li>Facturar y cumplir obligaciones contables y fiscales: obligación legal.</li>
           <li>Seguridad, prevención del fraude y atenderte cuando nos escribes: interés legítimo. Puedes oponerte escribiéndonos.</li>
+          <li>Saber de dónde llegan las visitas y qué canales funcionan, con estadística agregada: interés legítimo.</li>
         </ul>
         <h2>Fotos de otras personas y de menores</h2>
         <p>Si subes fotos en las que aparecen otras personas, necesitas su permiso; si son menores, el de sus padres o tutores. Las fotos solo se usan para crear tu producto: no se publican, no se usan para publicidad y no se usan para entrenar modelos de inteligencia artificial.</p>
@@ -121,7 +122,7 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
         <p>REGALUMO solo usa cookies y almacenamiento técnicos, necesarios para que la web funcione. No requieren consentimiento (artículo 22.2 LSSI-CE), por eso no verás un aviso de cookies. No usamos cookies de analítica ni de publicidad: la estadística de visitas se cuenta de forma agregada y sin cookies.</p>
         <ul>
           <li><b>Almacenamiento local del navegador</b> (rg_tok_*, rg_ord_*, rg_pack): guarda en tu propio dispositivo la llave de tus proyectos y pedidos, para que solo tú puedas abrirlos sin registrarte. Dura hasta que lo borres desde el navegador.</li>
-          <li><b>Almacenamiento de sesión</b> (rg_s): una marca para contar una visita por pestaña en la estadística agregada. No identifica a nadie y se borra al cerrar la pestaña.</li>
+          <li><b>Almacenamiento de sesión</b> (rg_s, rg_src, rg_camp, rg_f_*): marcas para contar una sola vez cada visita y cada paso (abrir un producto, ver la muestra, ir a pagar) en la estadística agregada, y el tipo de origen de la visita (por ejemplo «Google»). No identifica a nadie, no se envía ningún identificador y se borra al cerrar la pestaña.</li>
           <li><b>rg_admin</b> (cookie): solo en el panel de administración, para mantener la sesión del personal autorizado. Dura 12 horas.</li>
         </ul>
         <p>Cuando pagas, lo haces en la página de Stripe (checkout.stripe.com), que usa sus propias cookies para la seguridad del pago, según su política. Si algún día añadimos cookies que no sean técnicas, te pediremos antes el consentimiento.</p>

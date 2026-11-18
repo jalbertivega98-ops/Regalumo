@@ -2,6 +2,7 @@ import { handle, json } from "@/lib/http";
 import { HttpError, loadOwned, tokenFrom } from "@/lib/projects";
 import { startCheckout } from "@/lib/payments/orders";
 import { clean } from "@/lib/security/text";
+import { cleanCampaign, isSource } from "@/lib/traffic";
 
 export const POST = handle(async (req: Request) => {
   const body = await req.json().catch(() => ({}));
@@ -9,6 +10,15 @@ export const POST = handle(async (req: Request) => {
   const sku = body.sku === "pack" ? "pack" : project.product;
   const email = clean(body.email, 120);
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new HttpError(400, "El correo electrónico no es válido.");
-  const r = await startCheckout({ project, sku, promoCode: clean(body.promo, 24) || undefined, email: email || undefined, consent: body.consent === true });
+  const r = await startCheckout({
+    project,
+    sku,
+    promoCode: clean(body.promo, 24) || undefined,
+    email: email || undefined,
+    consent: body.consent === true,
+    // Tipo de origen de la visita («google», «tiktok»…) para saber qué canales venden.
+    source: isSource(body.src) ? body.src : undefined,
+    campaign: cleanCampaign(body.camp) || undefined,
+  });
   return json(r);
 });

@@ -52,9 +52,18 @@ export const supabaseStore: Store = {
     const data = check(await sb().rpc("increment_counter", { p_key: key, p_by: by }));
     return Number(data);
   },
-  async counters(prefix: string) {
-    const data = check(await sb().from("counters").select("key,value").like("key", prefix + "%"));
-    return Object.fromEntries((data ?? []).map((r) => [r.key as string, Number(r.value)]));
+  async counters(prefix: string, fromKey?: string) {
+    // Supabase devuelve como mucho 1000 filas por consulta: se pide por páginas.
+    const out: Record<string, number> = {};
+    const PAGE = 1000;
+    for (let from = 0; ; from += PAGE) {
+      let q = sb().from("counters").select("key,value").like("key", prefix + "%");
+      if (fromKey) q = q.gte("key", fromKey);
+      const data = check(await q.order("key").range(from, from + PAGE - 1));
+      for (const r of data ?? []) out[r.key as string] = Number(r.value);
+      if (!data || data.length < PAGE) break;
+    }
+    return out;
   },
 };
 

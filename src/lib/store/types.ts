@@ -17,7 +17,8 @@ export interface Store {
   list<T>(col: Collection, limit?: number): Promise<T[]>;
   /** Contador atómico (límites de uso, analítica agregada). */
   incr(key: string, by?: number): Promise<number>;
-  counters(prefix: string): Promise<Record<string, number>>;
+  /** Contadores cuya clave empieza por `prefix` (y, si se indica, es >= `fromKey`). */
+  counters(prefix: string, fromKey?: string): Promise<Record<string, number>>;
 }
 
 export interface FileStore {

@@ -7,6 +7,7 @@ import { Rating } from "@/components/Rating";
 import { DeleteProject } from "@/components/DeleteProject";
 import { api, getOrderKey, getToken, saveToken } from "@/lib/client";
 import { LIMITS, OCCASIONS, TEMPLATES, newspaperSchema, suggestions, type NewspaperData, type OccasionId, type TemplateId } from "@/lib/newspaper/model";
+import { trackStep } from "@/lib/track-client";
 
 type ProjectDto = { id: string; data: NewspaperData; status: "draft" | "paid"; orderId?: string; photos: string[] };
 
@@ -120,7 +121,7 @@ export function NewspaperEditor() {
       setProject(r.project);
       setData(newspaperSchema.parse(r.project.data));
       router.replace(`/crear/periodico?p=${r.project.id}`, { scroll: false });
-      fetch("/api/track", { method: "POST", body: JSON.stringify({ event: "preview", product: "newspaper" }) }).catch(() => {});
+      trackStep("preview", "newspaper");
     } catch (e) {
       setError((e as Error).message);
     }
@@ -141,6 +142,7 @@ export function NewspaperEditor() {
         fd.append("file", f);
         const r = await api<{ photoId: string; project: ProjectDto }>(`/api/projects/${project.id}/photos`, { method: "POST", token, body: fd });
         setProject((p) => (p ? { ...p, photos: r.project.photos } : p));
+        trackStep("upload", "newspaper");
         setData((d) => {
           const photos = replacing
             ? [{ id: r.photoId, caption: "" }, ...d.photos.filter((x) => x.id !== replacing)]
