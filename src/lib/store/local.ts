@@ -87,6 +87,13 @@ export const localStore: Store = {
       return db.counters[key];
     });
   },
+  delCounters(prefix: string) {
+    return serial(async () => {
+      const db = await load();
+      for (const k of Object.keys(db.counters)) if (k.startsWith(prefix)) delete db.counters[k];
+      await persist();
+    });
+  },
   async counters(prefix: string, fromKey?: string) {
     const db = await load();
     return Object.fromEntries(Object.entries(db.counters).filter(([k]) => k.startsWith(prefix) && (!fromKey || k >= fromKey)));

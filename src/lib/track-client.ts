@@ -25,8 +25,24 @@ export function visitSource(): { src: SourceId; camp: string } {
   return { src: (s?.getItem("rg_src") as SourceId) || "directo", camp: s?.getItem("rg_camp") || "" };
 }
 
+const ME = "rg_yo";
+/** El navegador del dueño (ha abierto /admin) no cuenta en las estadísticas. */
+function isOwner() {
+  try {
+    return window.localStorage.getItem(ME) === "1";
+  } catch {
+    return false;
+  }
+}
+export function markOwner() {
+  try {
+    window.localStorage.setItem(ME, "1");
+  } catch {}
+}
+
 /** Llamar en cada cambio de página. */
 export function trackPage(path: string) {
+  if (isOwner()) return;
   const s = ss();
   if (s && !s.getItem("rg_s")) {
     const q = new URLSearchParams(window.location.search);
@@ -48,6 +64,7 @@ export function trackPage(path: string) {
 
 /** Paso del embudo: cuenta una vez por pestaña (total) y una vez por producto. */
 export function trackStep(step: ClientStep, product?: string) {
+  if (isOwner()) return;
   const s = ss();
   const kAll = `rg_f_${step}`;
   const kProd = `rg_f_${step}_${product ?? ""}`;

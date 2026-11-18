@@ -1,4 +1,5 @@
 import { bump, track } from "@/lib/analytics";
+import { isAdmin } from "@/lib/admin";
 import { isProductId } from "@/lib/products/catalog";
 import { pageKey } from "@/lib/pages";
 import { cleanCampaign, isBot, isClientStep, isMobile, isSource } from "@/lib/traffic";
@@ -10,7 +11,8 @@ import { cleanCampaign, isBot, isClientStep, isMobile, isSource } from "@/lib/tr
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const ua = req.headers.get("user-agent");
-  if (isBot(ua)) return new Response(null, { status: 204 });
+  // Robots y el propio dueño con la sesión del panel abierta no cuentan.
+  if (isBot(ua) || (await isAdmin())) return new Response(null, { status: 204 });
   const product = isProductId(body.product) ? body.product : undefined;
   const src = isSource(body.src) ? body.src : "directo";
 

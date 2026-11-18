@@ -96,3 +96,23 @@ test("Mis pedidos: sin correo configurado ofrece contacto y avisa de enlaces cad
   await page.goto("/");
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Mis pedidos" })).toHaveAttribute("href", "/mis-pedidos");
 });
+
+test("las visitas del dueño no cuentan y el panel puede poner las estadísticas a cero", async ({ page }) => {
+  await page.goto("/admin");
+  await page.fill("#pw", "e2e-admin");
+  await page.getByRole("button", { name: "Entrar" }).click();
+  await expect(page.getByText("Resumen de los últimos")).toBeVisible();
+  await page.goto("/admin/visitas?dias=1");
+  await page.getByRole("button", { name: "Poner a cero" }).click();
+  await page.getByRole("button", { name: "Sí, borrar las estadísticas" }).click();
+  await expect(page.getByText("Hecho: empiezan de cero.")).toBeVisible();
+  await expect(page.getByText("Todavía no hay visitas con origen registrado.")).toBeVisible();
+
+  // Mismo navegador, ya marcado como del dueño: navegar por la web no suma visitas.
+  await page.goto("/?utm_source=tiktok");
+  await page.waitForLoadState("networkidle");
+  await page.goto("/crear/escape-room");
+  await page.waitForLoadState("networkidle");
+  await page.goto("/admin/visitas?dias=1");
+  await expect(page.getByText("Todavía no hay visitas con origen registrado.")).toBeVisible();
+});
