@@ -99,7 +99,7 @@ test("el panel de visitas muestra origen, páginas y embudo", async ({ page, con
   await admin.goto("/admin/visitas?dias=1");
   await expect(admin.getByRole("heading", { name: "Visitas y embudo" })).toBeVisible();
   await expect(admin.getByRole("cell", { name: "Pinterest" }).first()).toBeVisible();
-  await expect(admin.getByRole("cell", { name: "navidad" })).toBeVisible();
+  await expect(admin.getByRole("cell", { name: "navidad", exact: true })).toBeVisible();
   await expect(admin.getByRole("cell", { name: "Editor del escape room" }).first()).toBeVisible();
   await expect(admin.getByText("3. Ve su muestra gratis")).toBeVisible();
 });
