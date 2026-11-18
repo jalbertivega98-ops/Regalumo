@@ -1,9 +1,12 @@
 import Link from "next/link";
 import Image from "next/image";
-import { config } from "@/lib/config";
 import { getPrices } from "@/lib/settings";
 import { formatEur, PRODUCTS } from "@/lib/products/catalog";
-import { HOME_FAQ } from "@/content/seo";
+import { HOME_FAQ, SEO_PAGES } from "@/content/seo";
+import { pageMetadata } from "@/lib/seo/meta";
+import { faqJsonLd, organizationJsonLd, websiteJsonLd } from "@/lib/seo/jsonld";
+
+const HOME_TITLE = "Regalos personalizados con foto, pruébalos gratis · REGALUMO";
 import { ProductCards } from "@/components/ProductCards";
 import { NewspaperShowcase } from "@/components/showcase/NewspaperShowcase";
 import { ColoringShowcase } from "@/components/showcase/ColoringShowcase";
@@ -15,8 +18,14 @@ import { JsonLd } from "@/components/JsonLd";
 export const revalidate = 300;
 
 export const metadata = {
-  alternates: { canonical: "/" },
-  openGraph: { url: "/", title: "REGALUMO · Crea algo único. Sorprende a alguien especial." },
+  ...pageMetadata({
+    title: HOME_TITLE,
+    description:
+      "Crea regalos personalizados con tus fotos: un periódico con su historia, un escape room para imprimir o un libro para colorear. Pruébalo gratis y sin registro.",
+    path: "/",
+  }),
+  // Título completo, sin la coletilla «· REGALUMO» de la plantilla (ya la incluye).
+  title: { absolute: HOME_TITLE },
 };
 
 const STEPS = [
@@ -51,11 +60,7 @@ export default async function Home() {
       <JsonLd
         data={{
           "@context": "https://schema.org",
-          "@graph": [
-            { "@type": "Organization", name: "REGALUMO", url: config.siteUrl, logo: `${config.siteUrl}/icon.svg`, slogan: config.slogan },
-            { "@type": "WebSite", name: "REGALUMO", url: config.siteUrl, inLanguage: "es-ES" },
-            { "@type": "FAQPage", mainEntity: HOME_FAQ.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
-          ],
+          "@graph": [organizationJsonLd(), websiteJsonLd(), faqJsonLd(HOME_FAQ)],
         }}
       />
 
@@ -259,6 +264,20 @@ export default async function Home() {
         <div className="mt-6">
           <Faq items={HOME_FAQ} />
         </div>
+      </section>
+
+      {/* IDEAS: enlaces a las guías por ocasión (también ayudan a que Google las encuentre) */}
+      <section id="ideas" className="mx-auto max-w-7xl px-4 pb-16 sm:px-6">
+        <h2 className="reveal font-display text-3xl font-black lg:text-4xl">Ideas y guías de regalo</h2>
+        <ul className="mt-6 flex flex-wrap gap-3">
+          {SEO_PAGES.map((p) => (
+            <li key={p.slug}>
+              <Link href={`/${p.slug}`} className="inline-block rounded-full border-2 border-line bg-white px-4 py-2 font-semibold transition hover:border-coral hover:text-coral">
+                {p.label}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pt-8 sm:px-6">

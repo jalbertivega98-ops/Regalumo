@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, eur, getPackCredit } from "@/lib/client";
 import { PACK, PRODUCTS, type ProductId } from "@/lib/products/catalog";
+import { trackStep, visitSource } from "@/lib/track-client";
 
 interface Props {
   product: ProductId;
@@ -66,8 +67,9 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
       const r = await api<{ url: string }>("/api/checkout", {
         method: "POST",
         token: p.token,
-        body: JSON.stringify({ projectId: p.id, sku: sku === "pack" ? "pack" : product, email, promo, consent }),
+        body: JSON.stringify({ projectId: p.id, sku: sku === "pack" ? "pack" : product, email, promo, consent, ...visitSource() }),
       });
+      trackStep("checkout", product);
       window.location.href = r.url;
     } catch (e) {
       setError((e as Error).message);

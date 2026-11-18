@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   // Las fuentes del PDF se leen desde disco en las funciones del servidor.
   outputFileTracingIncludes: {
     "/api/**/*": ["./assets/fonts/**/*", "./assets/samples/**/*", "./assets/models/**/*", "./node_modules/onnxruntime-node/bin/napi-v6/linux/x64/libonnxruntime.so.1"],
+    // Imágenes para compartir: se generan al compilar, pero por si se regeneran en el servidor.
+    "/og/**/*": ["./assets/fonts/fraunces-latin-900-normal.woff", "./assets/fonts/inter-latin-800-normal.woff", "./public/icon.svg"],
+    "/apple-icon": ["./public/icon.svg"],
   },
   // Motor ONNX nativo (separar sujeto y fondo en las láminas). Solo hace falta el binario de Linux x64.
   serverExternalPackages: ["onnxruntime-node"],
@@ -61,6 +64,14 @@ const nextConfig: NextConfig = {
         // Zonas privadas: nunca indexar.
         source: "/(crear|pedido|admin|api)/:path*",
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
+      },
+      {
+        // "Mis pedidos" lleva el enlace mágico en la URL: ni indexar ni enviarlo como referer.
+        source: "/mis-pedidos",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
       },
     ];
   },

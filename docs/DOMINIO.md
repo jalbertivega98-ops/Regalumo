@@ -20,7 +20,7 @@ Vercel → Settings → Environment Variables → `NEXT_PUBLIC_SITE_URL` = `http
 ## 4. Correos de compra (Resend, gratis hasta 3.000/mes)
 1. Cuenta en <https://resend.com> → Domains → Add `regalumo.es` → copia los registros DNS (SPF, DKIM) en el registrador.
 2. Cuando aparezca "Verified": API Keys → crear clave → en Vercel añade `RESEND_API_KEY` y `EMAIL_FROM` = `REGALUMO <pedidos@regalumo.es>` → Redeploy.
-3. A partir de ahí la web promete y envía el enlace por correo automáticamente.
+3. A partir de ahí la web promete y envía el enlace por correo automáticamente, y se activa **Mis pedidos** (`/mis-pedidos`): el cliente escribe su correo y recibe un enlace sin contraseña, válido 24 horas, con todos sus pedidos. Sin la clave, esa página solo muestra el correo de contacto.
 
 ## 5. Google
 1. <https://search.google.com/search-console> → añadir propiedad de dominio → registro TXT en el DNS.

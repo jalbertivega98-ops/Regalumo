@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SEO_PAGES, getSeoPage } from "@/content/seo";
-import { config } from "@/lib/config";
 import { getPrices } from "@/lib/settings";
 import { PRODUCTS, formatEur } from "@/lib/products/catalog";
 import { NewspaperShowcase } from "@/components/showcase/NewspaperShowcase";
@@ -13,6 +12,8 @@ import { ProductCards } from "@/components/ProductCards";
 import { ProductVideo } from "@/components/ProductVideo";
 import { Faq } from "@/components/Faq";
 import { JsonLd } from "@/components/JsonLd";
+import { pageMetadata } from "@/lib/seo/meta";
+import { landingJsonLd } from "@/lib/seo/jsonld";
 
 export const dynamicParams = false;
 export const revalidate = 300;
@@ -24,12 +25,7 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const page = getSeoPage((await params).slug);
   if (!page) return {};
-  return {
-    title: page.title,
-    description: page.description,
-    alternates: { canonical: `/${page.slug}` },
-    openGraph: { title: page.title, description: page.description, url: `/${page.slug}`, type: "website" },
-  };
+  return pageMetadata({ title: page.title, description: page.description, path: `/${page.slug}`, image: `/og/${page.slug}`, imageAlt: page.h1 });
 }
 
 export default async function SeoLanding({ params }: { params: Promise<{ slug: string }> }) {
@@ -38,38 +34,10 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
   const prices = await getPrices();
   const product = page.product === "all" ? null : PRODUCTS[page.product];
   const href = product ? product.editorPath : "/crear";
-  const url = `${config.siteUrl}/${page.slug}`;
-
-  const graph: object[] = [
-    {
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Inicio", item: config.siteUrl },
-        { "@type": "ListItem", position: 2, name: page.eyebrow, item: url },
-      ],
-    },
-    { "@type": "FAQPage", mainEntity: page.faq.map((f) => ({ "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } })) },
-  ];
-  if (product) {
-    graph.push({
-      "@type": "Product",
-      name: product.name,
-      description: product.short,
-      brand: { "@type": "Brand", name: "REGALUMO" },
-      url,
-      offers: {
-        "@type": "Offer",
-        price: (prices[product.id] / 100).toFixed(2),
-        priceCurrency: "EUR",
-        availability: "https://schema.org/InStock",
-        url,
-      },
-    });
-  }
 
   return (
     <>
-      <JsonLd data={{ "@context": "https://schema.org", "@graph": graph }} />
+      <JsonLd data={landingJsonLd(page, prices)} />
       <nav aria-label="Migas de pan" className="mx-auto max-w-7xl px-4 pt-6 text-sm text-ink-soft">
         <Link href="/" className="underline">Inicio</Link> <span aria-hidden>›</span> <span>{page.eyebrow}</span>
       </nav>
@@ -85,7 +53,7 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
           </div>
         </div>
         <div className={product ? "order-first lg:order-none" : undefined}>
-          {product ? <ProductVideo product={product.id} /> : <ColoringShowcase />}
+          {product ? <ProductVideo product={product.id} /> : <ColoringShowcase eager />}
         </div>
       </section>
 
@@ -138,7 +106,7 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
               const r = getSeoPage(slug);
               return r ? (
                 <li key={slug}>
-                  <Link href={`/${slug}`} className="card block p-4 font-semibold hover:text-coral">{r.eyebrow} →</Link>
+                  <Link href={`/${slug}`} className="card block p-4 font-semibold hover:text-coral">{r.label} →</Link>
                 </li>
               ) : null;
             })}

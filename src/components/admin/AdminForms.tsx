@@ -137,3 +137,42 @@ export function RequestToggle({ id, status }: { id: string; status: string }) {
     </button>
   );
 }
+
+/** Pone a cero las estadísticas. Pide una segunda pulsación para confirmar. */
+export function ResetStats() {
+  const router = useRouter();
+  const [step, setStep] = useState<"idle" | "confirm" | "busy" | "done">("idle");
+  const [error, setError] = useState("");
+  return (
+    <div className="card space-y-2 p-4">
+      <p className="font-bold">Poner las estadísticas a cero</p>
+      <p className="hint">
+        Borra visitas, origen, páginas y embudo de todos los días, por ejemplo después de tus propias pruebas. No toca pedidos, ventas ni clientes.
+      </p>
+      <div className="flex flex-wrap items-center gap-2">
+        <button
+          className={`btn ${step === "confirm" ? "bg-coral text-white" : "btn-ghost"}`}
+          disabled={step === "busy"}
+          onClick={async () => {
+            if (step !== "confirm") return setStep("confirm");
+            setStep("busy");
+            setError("");
+            try {
+              await api("/api/admin/stats", { method: "DELETE" });
+              setStep("done");
+              router.refresh();
+            } catch (e) {
+              setError((e as Error).message);
+              setStep("idle");
+            }
+          }}
+        >
+          {step === "confirm" ? "Sí, borrar las estadísticas" : step === "busy" ? "Borrando…" : "Poner a cero"}
+        </button>
+        {step === "confirm" && <button className="btn btn-ghost" onClick={() => setStep("idle")}>Cancelar</button>}
+        {step === "done" && <span className="text-sm font-semibold text-mint">Hecho: empiezan de cero.</span>}
+        {error && <span className="text-sm text-coral-dark">{error}</span>}
+      </div>
+    </div>
+  );
+}

@@ -40,7 +40,7 @@ export async function sendEmail(to: string, subject: string, html: string) {
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]!);
 
-export function purchaseEmail(opts: { orderUrl: string; items: string[]; total: string }) {
+export function purchaseEmail(opts: { orderUrl: string; myOrdersUrl?: string; items: string[]; total: string }) {
   return `<!doctype html><html><body style="margin:0;background:#FFF8EF;font-family:Arial,sans-serif;color:#1E1633">
   <div style="max-width:560px;margin:0 auto;padding:32px 24px">
     <p style="font-size:22px;font-weight:800;margin:0 0 4px">REGALUMO</p>
@@ -49,6 +49,6 @@ export function purchaseEmail(opts: { orderUrl: string; items: string[]; total: 
     <p>Tu pedido está confirmado: ${opts.items.map(esc).join(", ")}. Total: <strong>${esc(opts.total)}</strong>.</p>
     <p>Puedes descargar tus archivos desde este enlace privado (no lo compartas):</p>
     <p style="margin:24px 0"><a href="${esc(opts.orderUrl)}" style="background:#FF6B4A;color:#fff;padding:14px 22px;border-radius:999px;text-decoration:none;font-weight:700">Descargar mis regalos</a></p>
-    <p style="font-size:13px;color:#5E5873">El enlace funciona durante 30 días. Si tienes cualquier problema, responde a este correo.</p>
+    <p style="font-size:13px;color:#5E5873">El enlace funciona durante 30 días.${opts.myOrdersUrl ? ` Si pierdes este correo, recupera todos tus pedidos en <a href="${esc(opts.myOrdersUrl)}" style="color:#1E1633">Mis pedidos</a> con tu email.` : ""} Si tienes cualquier problema, responde a este correo.</p>
   </div></body></html>`;
 }
