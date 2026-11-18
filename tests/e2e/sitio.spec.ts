@@ -81,3 +81,36 @@ test("el panel de administración pide contraseña", async ({ page }) => {
   await page.getByRole("button", { name: "Entrar" }).click();
   await expect(page.getByText("Resumen de los últimos")).toBeVisible();
 });
+
+test("el panel de visitas muestra origen, páginas y embudo", async ({ page, context }) => {
+  // Visita desde un enlace etiquetado de Pinterest que juega la demo del escape room.
+  await page.goto("/?utm_source=pinterest&utm_campaign=Navidad");
+  await page.waitForLoadState("networkidle");
+  await page.goto("/crear/escape-room");
+  await page.getByText("Jugar la demo gratis").click();
+  await expect(page.getByText(/Reto 1/i).first()).toBeVisible();
+
+  const admin = await context.newPage();
+  await admin.goto("/admin");
+  await admin.fill("#pw", "e2e-admin");
+  await admin.getByRole("button", { name: "Entrar" }).click();
+  await expect(admin.getByText("Resumen de los últimos")).toBeVisible();
+  await admin.waitForTimeout(1500); // los avisos de analítica se envían en segundo plano
+  await admin.goto("/admin/visitas?dias=1");
+  await expect(admin.getByRole("heading", { name: "Visitas y embudo" })).toBeVisible();
+  await expect(admin.getByRole("cell", { name: "Pinterest" }).first()).toBeVisible();
+  await expect(admin.getByRole("cell", { name: "navidad" })).toBeVisible();
+  await expect(admin.getByRole("cell", { name: "Editor del escape room" }).first()).toBeVisible();
+  await expect(admin.getByText("3. Ve su muestra gratis")).toBeVisible();
+});
+
+test("Mis pedidos: sin correo configurado ofrece contacto y avisa de enlaces caducados", async ({ page }) => {
+  const res = await page.goto("/mis-pedidos");
+  expect(res?.headers()["x-robots-tag"]).toContain("noindex");
+  await expect(page.getByRole("heading", { name: "Mis pedidos" })).toBeVisible();
+  await expect(page.getByText(/desde el correo con el que pagaste/)).toBeVisible();
+  await page.goto("/mis-pedidos?t=enlace-falso");
+  await expect(page.getByText(/ha caducado o no es válido/)).toBeVisible();
+  await page.goto("/");
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Mis pedidos" })).toHaveAttribute("href", "/mis-pedidos");
+});

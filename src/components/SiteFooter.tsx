@@ -40,6 +40,7 @@ export function SiteFooter() {
         <div>
           <p className="font-bold mb-3">Legal y contacto</p>
           <ul className="space-y-2 text-white/80 text-sm">
+            <li><Link href="/mis-pedidos">Mis pedidos</Link></li>
             <li><Link href="/legal/aviso-legal">Aviso legal</Link></li>
             <li><Link href="/legal/condiciones">Condiciones de venta</Link></li>
             <li><Link href="/legal/privacidad">Privacidad</Link></li>

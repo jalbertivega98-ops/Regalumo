@@ -7,6 +7,7 @@ import { UnlockPanel } from "@/components/UnlockPanel";
 import { api, getOrderKey, getToken, saveToken } from "@/lib/client";
 import { AGES, DIFFICULTIES, DURATIONS, THEME_OPTIONS, puzzleCount, type AgeId, type Difficulty } from "@/lib/escape/options";
 import type { Printable } from "@/lib/escape/generator";
+import { trackStep } from "@/lib/track-client";
 
 type Input = { age: AgeId; theme: string; players: number; difficulty: Difficulty; duration: number; hero: string; team: string };
 type DemoPuzzle = { kind: string; title: string; chapter: string; instructions: string; printable: Printable };
@@ -49,6 +50,7 @@ export function EscapeEditor() {
     try {
       const d = await api<Demo>("/api/escape/demo", { method: "POST", body: JSON.stringify({ input }) });
       setDemo(d);
+      trackStep("preview", "escape");
       setStep(0);
       setAnswer("");
       setFeedback(null);
