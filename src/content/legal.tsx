@@ -123,6 +123,7 @@ export const LEGAL: Record<string, { title: string; description: string; body: R
         <ul>
           <li><b>Almacenamiento local del navegador</b> (rg_tok_*, rg_ord_*, rg_pack): guarda en tu propio dispositivo la llave de tus proyectos y pedidos, para que solo tú puedas abrirlos sin registrarte. Dura hasta que lo borres desde el navegador.</li>
           <li><b>Almacenamiento de sesión</b> (rg_s, rg_src, rg_camp, rg_f_*): marcas para contar una sola vez cada visita y cada paso (abrir un producto, ver la muestra, ir a pagar) en la estadística agregada, y el tipo de origen de la visita (por ejemplo «Google»). No identifica a nadie, no se envía ningún identificador y se borra al cerrar la pestaña.</li>
+          <li><b>rg_yo</b> (almacenamiento local): solo en los dispositivos del personal que abre el panel, para no contar sus propias visitas en la estadística.</li>
           <li><b>rg_admin</b> (cookie): solo en el panel de administración, para mantener la sesión del personal autorizado. Dura 12 horas.</li>
         </ul>
         <p>Cuando pagas, lo haces en la página de Stripe (checkout.stripe.com), que usa sus propias cookies para la seguridad del pago, según su política. Si algún día añadimos cookies que no sean técnicas, te pediremos antes el consentimiento.</p>

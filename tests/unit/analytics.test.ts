@@ -140,3 +140,13 @@ describe("rutas de los editores", () => {
     expect(Object.keys(EDITOR_PATHS)).toHaveLength(PRODUCT_IDS.length);
   });
 });
+
+describe("poner a cero", () => {
+  it("borra solo las estadísticas, no los límites de uso", async () => {
+    const store = getStore();
+    await store.incr("rl:2026-01-01:upload:abc", 3);
+    await store.delCounters("stat:");
+    expect(await store.counters("stat:")).toEqual({});
+    expect((await store.counters("rl:"))["rl:2026-01-01:upload:abc"]).toBe(3);
+  });
+});

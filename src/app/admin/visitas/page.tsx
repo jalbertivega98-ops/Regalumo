@@ -4,6 +4,7 @@ import { pageLabel } from "@/lib/pages";
 import { FUNNEL, SOURCES, type FunnelStep, type SourceId } from "@/lib/traffic";
 import { config } from "@/lib/config";
 import { Stat, Table } from "@/components/admin/ui";
+import { ResetStats } from "@/components/admin/AdminForms";
 
 export const metadata = { title: "Visitas y embudo" };
 
@@ -222,6 +223,12 @@ export default async function Visitas({ searchParams }: { searchParams: Promise<
         />
         <p className="hint mt-2">«Van a pagar» se cuenta en el producto desde el que se pulsó el botón, también si eligieron el pack.</p>
       </section>
+
+      <p className="hint">
+        Tus propias visitas no cuentan: en cada móvil u ordenador donde abras este panel, la web deja de contarte desde ese momento.
+      </p>
+
+      <ResetStats />
 
       <p className="hint">
         Estadísticas propias sin cookies ni datos personales: solo se guardan sumas por día (origen, página y paso). No se guarda la IP ni de qué web exacta viene nadie, así que no hace falta banner de cookies. El origen y el embudo se miden desde que se activó esta página; las visitas anteriores solo tienen el total.

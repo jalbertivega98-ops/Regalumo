@@ -19,6 +19,8 @@ export interface Store {
   incr(key: string, by?: number): Promise<number>;
   /** Contadores cuya clave empieza por `prefix` (y, si se indica, es >= `fromKey`). */
   counters(prefix: string, fromKey?: string): Promise<Record<string, number>>;
+  /** Borra los contadores cuya clave empieza por `prefix`. */
+  delCounters(prefix: string): Promise<void>;
 }
 
 export interface FileStore {
