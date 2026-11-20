@@ -2,10 +2,10 @@
 
 ## Qué está hecho
 
-- **13 páginas de aterrizaje con contenido original** (`src/content/seo.ts`), cada una con título, descripción, H1, secciones, preguntas frecuentes, enlaces internos y llamada a la prueba gratuita:
+- **17 páginas de aterrizaje con contenido original** (`src/content/seo.ts`), cada una con título, descripción, H1, secciones, preguntas frecuentes, enlaces internos y llamada a la prueba gratuita:
   - `/escape-room-personalizado`, `/escape-room-para-cumpleanos`, `/escape-room-para-imprimir`
-  - `/periodico-personalizado`, `/periodico-de-cumpleanos`, `/regalo-de-aniversario-original`
-  - `/regalos-personalizados`, `/regalo-personalizado-con-foto`, `/regalos-de-navidad-personalizados`, `/regalo-de-ultima-hora`
+  - `/periodico-personalizado`, `/periodico-de-cumpleanos`, `/regalo-de-aniversario-original`, `/periodico-de-boda`, `/regalo-de-jubilacion-original`
+  - `/regalos-personalizados`, `/regalo-personalizado-con-foto`, `/regalos-de-navidad-personalizados`, `/regalo-de-ultima-hora`, `/regalos-de-reyes-para-ninos`, `/regalo-amigo-invisible-original`
   - `/foto-para-colorear`, `/laminas-para-colorear-con-foto`, `/libro-para-colorear-personalizado`
 - La portada y el pie enlazan a todas las guías (sección «Ideas y guías de regalo»), para que Google las encuentre y entienda de qué trata cada una.
 - Cada guía tiene su propia **imagen para compartir** (`/og/<página>`, 1200×630) que se ve al pegar el enlace en WhatsApp, Facebook o X. Los metadatos se generan con `src/lib/seo/meta.ts` para que ninguna página pierda la imagen, el nombre del sitio ni el idioma.
@@ -24,7 +24,7 @@ No se puede garantizar ninguna posición en Google. Lo que sí ayuda: contenido 
 2. **Añadir propiedad**:
    - *Dominio* (recomendado): introduce `regalumo.es` y añade el registro TXT que te indique en DonDominio (panel → Zona DNS). Cubre http/https y www.
    - *Prefijo de URL* (alternativa sin DNS): introduce `https://regalumo.es`, elige **Etiqueta HTML**, copia solo el valor de `content="..."` en la variable `GOOGLE_SITE_VERIFICATION` de Vercel, vuelve a desplegar y pulsa **Verificar**.
-3. **Enviar el sitemap**: menú *Sitemaps* → escribe `sitemap.xml` → *Enviar*. Debe quedar como "Correcto" y mostrar unas 18 URL.
+3. **Enviar el sitemap**: menú *Sitemaps* → escribe `sitemap.xml` → *Enviar*. Debe quedar como "Correcto" y mostrar unas 22 URL.
 4. **Solicitar indexación**: pega en la barra superior (*Inspeccionar URL*) la portada y cada página de aterrizaje, y pulsa **Solicitar indexación**. Hay un límite diario: empieza por la portada y las tres páginas principales.
 5. Revisa cada semana *Páginas* (errores de indexación), *Rendimiento* (búsquedas reales) y *Experiencia*. Las rutas privadas aparecerán como "Excluida por la etiqueta noindex" o "Bloqueada por robots.txt": es lo esperado.
 

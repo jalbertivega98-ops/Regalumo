@@ -14,6 +14,10 @@ const SEO = [
   "/regalos-de-navidad-personalizados",
   "/regalo-de-ultima-hora",
   "/regalo-de-aniversario-original",
+  "/periodico-de-boda",
+  "/regalo-de-jubilacion-original",
+  "/regalos-de-reyes-para-ninos",
+  "/regalo-amigo-invisible-original",
 ];
 
 test("la portada muestra eslogan, productos y precios", async ({ page }) => {
