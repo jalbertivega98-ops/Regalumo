@@ -28,7 +28,7 @@ export function Rating({ projectId, token }: { projectId: string; token: string 
       </div>
       {value > 0 && value < 4 && (
         <div className="mt-3 flex gap-2">
-          <input className="field text-sm" placeholder="¿Qué mejorarías? (opcional)" maxLength={500} value={comment} onChange={(e) => setComment(e.target.value)} />
+          <input className="field" aria-label="¿Qué mejorarías? (opcional)" placeholder="¿Qué mejorarías? (opcional)" maxLength={500} value={comment} onChange={(e) => setComment(e.target.value)} />
           <button type="button" className="btn btn-ghost !py-2 text-sm" onClick={() => send(value, comment)}>Enviar</button>
         </div>
       )}

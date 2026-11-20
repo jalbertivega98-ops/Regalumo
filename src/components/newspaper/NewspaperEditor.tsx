@@ -246,7 +246,7 @@ export function NewspaperEditor() {
 
       <div className="mt-4 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)]">
         <div className="space-y-3">
-<input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+<input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" tabIndex={-1} aria-label="Elegir fotos" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
           <div className="card space-y-4 p-4 sm:p-5">
             <p className="font-display text-xl font-bold">Tu portada</p>
             {!paid && data.photos.length === 0 && (
@@ -353,7 +353,7 @@ export function NewspaperEditor() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={`/api/projects/${project.id}/photos/${ph.id}?t=${encodeURIComponent(token)}&w=300`} alt={`Foto ${i + 1}`} className="size-20 rounded-xl object-cover" />
                   <div className="flex-1 space-y-2">
-                    <input className="field !py-1.5 text-sm" maxLength={LIMITS.caption} disabled={paid} placeholder="Pie de foto (opcional)" value={ph.caption} onChange={(e) => update({ photos: data.photos.map((x) => (x.id === ph.id ? { ...x, caption: e.target.value } : x)) })} />
+                    <input className="field !py-1.5" maxLength={LIMITS.caption} disabled={paid} aria-label={`Pie de la foto ${i + 1} (opcional)`} placeholder="Pie de foto (opcional)" value={ph.caption} onChange={(e) => update({ photos: data.photos.map((x) => (x.id === ph.id ? { ...x, caption: e.target.value } : x)) })} />
                     {!paid && (
                       <div className="flex gap-3 text-sm">
                         {i > 0 && (
@@ -373,8 +373,8 @@ export function NewspaperEditor() {
           <Section n={5} title={`Anécdotas (${data.anecdotes.length}/${LIMITS.anecdotes})`}>
             {data.anecdotes.map((a, i) => (
               <div key={i} className="rounded-2xl bg-shell p-3 space-y-2">
-                <input className="field" maxLength={LIMITS.anecdoteTitle} disabled={paid} placeholder="Título de la anécdota" value={a.title} onChange={(e) => update({ anecdotes: data.anecdotes.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)) })} />
-                <textarea className="field" rows={3} maxLength={LIMITS.anecdoteText} disabled={paid} placeholder="Cuéntala con tus palabras" value={a.text} onChange={(e) => update({ anecdotes: data.anecdotes.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)) })} />
+                <input className="field" maxLength={LIMITS.anecdoteTitle} disabled={paid} aria-label={`Título de la anécdota ${i + 1}`} placeholder="Título de la anécdota" value={a.title} onChange={(e) => update({ anecdotes: data.anecdotes.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)) })} />
+                <textarea className="field" rows={3} maxLength={LIMITS.anecdoteText} disabled={paid} aria-label={`Texto de la anécdota ${i + 1}`} placeholder="Cuéntala con tus palabras" value={a.text} onChange={(e) => update({ anecdotes: data.anecdotes.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)) })} />
                 {!paid && <button type="button" className="text-sm underline text-coral-dark" onClick={() => update({ anecdotes: data.anecdotes.filter((_, j) => j !== i) })}>Quitar</button>}
               </div>
             ))}
@@ -386,9 +386,9 @@ export function NewspaperEditor() {
           <Section n={6} title={`Mensajes de familia y amistades (${data.messages.length}/${LIMITS.messages})`}>
             {data.messages.map((m, i) => (
               <div key={i} className="rounded-2xl bg-shell p-3 space-y-2">
-                <textarea className="field" rows={2} maxLength={LIMITS.message} disabled={paid} placeholder="El mensaje" value={m.text} onChange={(e) => update({ messages: data.messages.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)) })} />
+                <textarea className="field" rows={2} maxLength={LIMITS.message} disabled={paid} aria-label={`Mensaje ${i + 1}`} placeholder="El mensaje" value={m.text} onChange={(e) => update({ messages: data.messages.map((x, j) => (j === i ? { ...x, text: e.target.value } : x)) })} />
                 <div className="flex gap-2">
-                  <input className="field" maxLength={LIMITS.from} disabled={paid} placeholder="Firma (quién lo escribe)" value={m.from} onChange={(e) => update({ messages: data.messages.map((x, j) => (j === i ? { ...x, from: e.target.value } : x)) })} />
+                  <input className="field" maxLength={LIMITS.from} disabled={paid} aria-label={`Firma del mensaje ${i + 1}`} placeholder="Firma (quién lo escribe)" value={m.from} onChange={(e) => update({ messages: data.messages.map((x, j) => (j === i ? { ...x, from: e.target.value } : x)) })} />
                   {!paid && <button type="button" className="text-sm underline text-coral-dark" onClick={() => update({ messages: data.messages.filter((_, j) => j !== i) })}>Quitar</button>}
                 </div>
               </div>
@@ -401,8 +401,8 @@ export function NewspaperEditor() {
           <Section n={7} title="Fechas importantes y firma">
             {data.dates.map((x, i) => (
               <div key={i} className="flex gap-2">
-                <input className="field max-w-28" maxLength={20} disabled={paid} placeholder="Año o fecha" value={x.date} onChange={(e) => update({ dates: data.dates.map((y, j) => (j === i ? { ...y, date: e.target.value } : y)) })} />
-                <input className="field" maxLength={LIMITS.dateLabel} disabled={paid} placeholder="Qué pasó" value={x.label} onChange={(e) => update({ dates: data.dates.map((y, j) => (j === i ? { ...y, label: e.target.value } : y)) })} />
+                <input className="field max-w-28" maxLength={20} disabled={paid} aria-label={`Fecha ${i + 1}: año o fecha`} placeholder="Año o fecha" value={x.date} onChange={(e) => update({ dates: data.dates.map((y, j) => (j === i ? { ...y, date: e.target.value } : y)) })} />
+                <input className="field" maxLength={LIMITS.dateLabel} disabled={paid} aria-label={`Fecha ${i + 1}: qué pasó`} placeholder="Qué pasó" value={x.label} onChange={(e) => update({ dates: data.dates.map((y, j) => (j === i ? { ...y, label: e.target.value } : y)) })} />
                 {!paid && <button type="button" aria-label="Quitar fecha" className="px-2 text-coral-dark" onClick={() => update({ dates: data.dates.filter((_, j) => j !== i) })}>✕</button>}
               </div>
             ))}
