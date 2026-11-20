@@ -197,7 +197,7 @@ export const SEO_PAGES: SeoPage[] = [
       { q: "¿Puedo probarlo sin pagar?", a: "Sí. Puedes crear la portada completa con tus datos y fotos y verla en pantalla. Solo pagas si quieres el PDF sin marca de agua." },
       { q: "¿Mis fotos son públicas?", a: "No. Se guardan de forma privada, solo las ve quien tiene el enlace del proyecto y puedes borrarlas en cualquier momento." },
     ],
-    related: ["periodico-de-cumpleanos", "regalo-de-aniversario-original", "regalo-personalizado-con-foto"],
+    related: ["periodico-de-boda", "regalo-de-jubilacion-original", "regalo-de-aniversario-original"],
   },
   {
     slug: "periodico-de-cumpleanos",
@@ -502,7 +502,7 @@ export const SEO_PAGES: SeoPage[] = [
       { q: "¿Hay un pack con los tres regalos?", a: "Sí, el pack de periódico, escape room y libro para colorear cuesta 19,99 €." },
       { q: "¿Puedo probarlo antes?", a: "Sí. Todas las herramientas tienen una prueba gratuita real, sin registro ni tarjeta." },
     ],
-    related: ["regalo-de-ultima-hora", "escape-room-personalizado", "regalo-personalizado-con-foto"],
+    related: ["regalos-de-reyes-para-ninos", "regalo-amigo-invisible-original", "regalo-de-ultima-hora"],
   },
   {
     slug: "regalo-de-ultima-hora",
@@ -591,6 +591,185 @@ export const SEO_PAGES: SeoPage[] = [
       { q: "¿Se inventa algún dato?", a: "No. La portada solo muestra lo que tú escribes; los textos sugeridos son neutrales y puedes cambiarlos todos." },
     ],
     related: ["periodico-personalizado", "periodico-de-cumpleanos", "regalo-personalizado-con-foto"],
+  },
+  {
+    slug: "periodico-de-boda",
+    label: "Periódico de boda",
+    title: "Periódico de boda personalizado para los novios",
+    description:
+      "Crea un periódico de boda con la historia de los novios, sus fotos y mensajes de los invitados. Para regalar, enmarcar o repartir en el banquete.",
+    eyebrow: "Bodas",
+    h1: "Periódico de boda: la historia de los novios en portada",
+    intro:
+      "Cómo se conocieron, la pedida, el viaje que lo cambió todo y los mensajes de quienes les quieren. El periódico de boda convierte esa historia en una portada A3 que los novios pueden enmarcar, y que también puedes imprimir en A4 para repartir entre los invitados.",
+    product: "newspaper",
+    visual: "newspaper",
+    cta: "Crear el periódico de la boda",
+    sections: [
+      {
+        h2: "Tres formas de usarlo",
+        paragraphs: ["El mismo PDF sirve para varios momentos de la boda:"],
+        bullets: [
+          "Como regalo para los novios, enmarcado en A3.",
+          "Impreso en A4 en cada plato del banquete, para leer mientras llegan los entrantes.",
+          "Como sorpresa en la despedida de soltero o soltera, con anécdotas de la pandilla.",
+        ],
+      },
+      {
+        h2: "Qué contar en la portada",
+        paragraphs: ["Algunas ideas que siempre funcionan:"],
+        bullets: [
+          "Titular con sus nombres: la plantilla de boda propone «¡Ana se casa!» y puedes cambiarlo.",
+          "La foto más antigua que tengáis juntos y una reciente.",
+          "La anécdota de cómo se conocieron, contada por quien estaba delante.",
+          "Hasta 6 mensajes cortos de familia y amistades.",
+          "La fecha de la boda y las fechas que marcaron su historia.",
+        ],
+      },
+      {
+        h2: "Prepararlo entre varios",
+        paragraphs: [
+          "Lo más bonito es que participe más gente. Pide una frase a cada hermano, amigo o padrino unos días antes, escoge las mejores y añádelas como mensajes. Puedes volver al proyecto tantas veces como quieras antes de pagar.",
+        ],
+      },
+    ],
+    faq: [
+      { q: "¿Puedo imprimir muchas copias para los invitados?", a: "Sí. Para uso privado puedes imprimir todas las copias que necesites del PDF que compras." },
+      { q: "¿Cuánto cuesta?", a: "6,99 € por el PDF sin marca de agua. Crear y ver la portada es gratis." },
+      { q: "¿Qué plantilla queda mejor para una boda?", a: "La clásica da un aire de diario de toda la vida y la vintage, en sepia, queda muy elegante enmarcada. Puedes cambiar de una a otra sin perder lo escrito." },
+    ],
+    related: ["regalo-de-aniversario-original", "periodico-personalizado", "regalo-personalizado-con-foto"],
+  },
+  {
+    slug: "regalo-de-jubilacion-original",
+    label: "Regalo de jubilación original",
+    title: "Regalo de jubilación original: su periódico",
+    description:
+      "Un regalo de jubilación original: la portada de un periódico con su trayectoria, fotos y mensajes de compañeros y familia. Pruébalo gratis y descarga el PDF.",
+    eyebrow: "Jubilaciones",
+    h1: "Regalo de jubilación original: una portada para toda una carrera",
+    intro:
+      "Después de tantos años, la despedida merece algo más que una tarjeta. El periódico de jubilación reúne fotos, anécdotas del trabajo y mensajes de compañeros y familia en una portada que se lee en la comida de despedida y se guarda para siempre.",
+    product: "newspaper",
+    visual: "newspaper",
+    cta: "Crear su periódico de jubilación",
+    sections: [
+      {
+        h2: "Ideal para regalar entre compañeros",
+        paragraphs: [
+          "Es un regalo fácil de organizar en grupo: una persona crea la portada y el resto manda una frase. Como es digital, nadie tiene que ir a buscarlo a una tienda y se puede imprimir el mismo día de la despedida.",
+        ],
+      },
+      {
+        h2: "Qué incluir",
+        bullets: [
+          "Un titular con su nombre. La plantilla propone «Marta inicia su nueva etapa».",
+          "Una foto de sus primeros años en el trabajo y otra reciente.",
+          "Hasta 3 anécdotas: la del primer día, la más divertida y la que todos recuerdan.",
+          "Mensajes cortos de compañeros, jefes y familia.",
+          "Las fechas importantes: el día que empezó y el día que se despide.",
+        ],
+        paragraphs: ["La portada se adapta a lo que añadas:"],
+      },
+      {
+        h2: "Cómo entregarlo",
+        paragraphs: [
+          "Imprímelo en A3 y enmárcalo para dárselo en la comida o la cena de despedida. También puedes imprimir copias en A4 para que cada compañero se lleve una de recuerdo.",
+        ],
+      },
+    ],
+    faq: [
+      { q: "¿Se inventa algún dato de su vida?", a: "No. La portada solo muestra lo que tú escribes. Los textos sugeridos son neutrales y puedes cambiarlos todos." },
+      { q: "¿Cuánto cuesta?", a: "6,99 € por el PDF en A3 sin marca de agua. Crear y ver la portada es gratis." },
+      { q: "¿Puedo hacerlo el mismo día?", a: "Sí. El PDF se descarga justo después del pago y puedes imprimirlo en cualquier copistería." },
+    ],
+    related: ["periodico-personalizado", "regalo-de-ultima-hora", "periodico-de-cumpleanos"],
+  },
+  {
+    slug: "regalos-de-reyes-para-ninos",
+    label: "Regalos de Reyes para niños",
+    title: "Regalos de Reyes para niños personalizados",
+    description:
+      "Ideas de regalos de Reyes para niños: un libro para colorear con sus fotos o un escape room para jugar en familia. Se crean en minutos y sin esperar envíos.",
+    eyebrow: "Reyes Magos",
+    h1: "Regalos de Reyes para niños que se ven en cada página",
+    intro:
+      "Un libro para colorear donde aparecen ellos, sus primos o su perro, o una aventura de escape room para resolver en familia la mañana del 6 de enero. Los dos se personalizan en minutos, se descargan al momento y no dependen de que llegue un paquete a tiempo.",
+    product: "all",
+    visual: "all",
+    cta: "Crear su regalo de Reyes",
+    sections: [
+      {
+        h2: "Un libro para colorear con su familia",
+        paragraphs: [
+          "Elige fotos de los peques, los abuelos o la mascota y conviértelas en láminas para colorear. El libro tiene portada con título y hasta 12 láminas. Para los más pequeños, el estilo infantil tiene menos detalles y trazos más gruesos.",
+        ],
+      },
+      {
+        h2: "Un escape room para la mañana de Reyes",
+        paragraphs: [
+          "Después de abrir los regalos, una aventura con historia, acertijos y un cofre final. Hay retos pensados desde los 5 años, el protagonista puede ser el propio niño o niña y el premio del cofre puede ser el último regalo.",
+        ],
+      },
+      {
+        h2: "Cómo presentarlo",
+        bullets: [
+          "Imprime el libro, grápalo o encuadérnalo en una copistería y déjalo junto a unas pinturas.",
+          "Mete el primer sobre del escape room en el zapato, con una nota de los Reyes.",
+          "Guarda el PDF: puedes volver a imprimir las láminas cuando se terminen.",
+        ],
+        paragraphs: ["Algunas ideas para el día 6:"],
+      },
+    ],
+    faq: [
+      { q: "¿Para qué edades sirve?", a: "El libro para colorear tiene un estilo infantil para los más pequeños. El escape room tiene retos desde 5 años hasta adultos." },
+      { q: "¿Cuánto cuesta?", a: "El libro para colorear cuesta 7,99 € y el escape room 9,99 €. El pack con los tres regalos cuesta 19,99 €." },
+      { q: "¿Llega a tiempo?", a: "Sí. No hay envío: el PDF se descarga justo después del pago, aunque sea la noche del 5 de enero." },
+    ],
+    related: ["regalos-de-navidad-personalizados", "libro-para-colorear-personalizado", "escape-room-para-cumpleanos"],
+  },
+  {
+    slug: "regalo-amigo-invisible-original",
+    label: "Amigo invisible original",
+    title: "Regalo de amigo invisible original y personal",
+    description:
+      "Ideas de regalo de amigo invisible original por menos de 10 €: un periódico con sus anécdotas, láminas para colorear o un escape room para el grupo.",
+    eyebrow: "Amigo invisible",
+    h1: "Un amigo invisible original que no acaba en el cajón",
+    intro:
+      "La taza, los calcetines, la vela de siempre. Si te ha tocado alguien a quien conoces, un regalo personalizado sorprende mucho más y cabe en el presupuesto habitual: cada producto cuesta menos de 10 € y lo pruebas gratis antes de pagar.",
+    product: "all",
+    visual: "all",
+    cta: "Crear mi amigo invisible",
+    sections: [
+      {
+        h2: "Según a quién te haya tocado",
+        bullets: [
+          "Alguien con mucha historia en el grupo: un periódico con sus anécdotas y una foto mítica (6,99 €).",
+          "Alguien con mascota o con hijos pequeños: un libro para colorear con sus fotos (7,99 €).",
+          "Si no sabes qué le gusta: un escape room para que lo juegue todo el grupo después de la cena (9,99 €).",
+        ],
+        paragraphs: ["Tres ideas que encajan con casi cualquier persona:"],
+      },
+      {
+        h2: "Para el amigo invisible del trabajo",
+        paragraphs: [
+          "Un periódico con el titular de su mejor momento del año en la oficina funciona muy bien, siempre que el humor sea con cariño. Cuenta solo lo que sabes que le hará gracia: la portada muestra únicamente lo que tú escribes.",
+        ],
+      },
+      {
+        h2: "Cómo entregarlo",
+        paragraphs: [
+          "Imprímelo, enróllalo con un lazo y ponle una etiqueta con su nombre. Si el amigo invisible es a distancia, puedes mandar el PDF por mensaje el día del sorteo.",
+        ],
+      },
+    ],
+    faq: [
+      { q: "¿Cuánto cuesta?", a: "El periódico cuesta 6,99 €, el libro para colorear 7,99 € y el escape room 9,99 €. Crear y ver el resultado es gratis." },
+      { q: "¿Sabrá que lo he hecho yo?", a: "Solo si tú quieres: no hace falta firmar la portada, y el PDF no lleva tu nombre salvo que lo escribas." },
+      { q: "¿Hay que registrarse?", a: "No. Puedes probar y comprar sin crear una cuenta." },
+    ],
+    related: ["regalos-de-navidad-personalizados", "regalo-de-ultima-hora", "regalo-personalizado-con-foto"],
   },
 ];
 

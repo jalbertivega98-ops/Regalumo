@@ -31,7 +31,11 @@ export function SiteFooter() {
             <li><Link href="/regalos-personalizados">Regalos personalizados</Link></li>
             <li><Link href="/regalo-personalizado-con-foto">Regalo personalizado con foto</Link></li>
             <li><Link href="/regalos-de-navidad-personalizados">Regalos de Navidad</Link></li>
+            <li><Link href="/regalos-de-reyes-para-ninos">Regalos de Reyes para niños</Link></li>
+            <li><Link href="/regalo-amigo-invisible-original">Amigo invisible original</Link></li>
+            <li><Link href="/periodico-de-boda">Periódico de boda</Link></li>
             <li><Link href="/regalo-de-aniversario-original">Regalo de aniversario</Link></li>
+            <li><Link href="/regalo-de-jubilacion-original">Regalo de jubilación</Link></li>
             <li><Link href="/regalo-de-ultima-hora">Regalo de última hora</Link></li>
             <li><Link href="/#precios">Precios</Link></li>
             <li><Link href="/#preguntas">Preguntas frecuentes</Link></li>
