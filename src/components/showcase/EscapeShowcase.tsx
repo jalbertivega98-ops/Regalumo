@@ -30,7 +30,7 @@ export function EscapeShowcase({ sample }: { sample: Sample }) {
         }}
       >
         <label htmlFor="sample-answer" className="sr-only">Tu respuesta</label>
-        <input id="sample-answer" className="field" value={v} onChange={(e) => setV(e.target.value)} placeholder="Tu respuesta" autoComplete="off" />
+        <input id="sample-answer" className="field" value={v} onChange={(e) => setV(e.target.value)} placeholder="Tu respuesta" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} enterKeyHint="done" />
         <button className="btn btn-dark !py-2">Comprobar</button>
       </form>
       {state === "ok" && <p className="mt-2 rounded-xl bg-mint/15 p-2 text-sm font-semibold">¡Correcto! En el juego completo, esta respuesta os daría una letra de la palabra final.</p>}

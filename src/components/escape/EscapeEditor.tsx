@@ -224,7 +224,7 @@ export function EscapeEditor() {
               {!feedback?.ok ? (
                 <form onSubmit={check} className="mt-5 flex flex-col gap-2 sm:flex-row">
                   <label htmlFor="answer" className="sr-only">Respuesta</label>
-                  <input id="answer" className="field" value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Escribe vuestra respuesta" autoComplete="off" />
+                  <input id="answer" className="field" value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Escribe vuestra respuesta" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} enterKeyHint="done" />
                   <button className="btn btn-dark">Comprobar</button>
                 </form>
               ) : null}

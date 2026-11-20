@@ -55,6 +55,7 @@ const TRUST = [
 export default async function Home() {
   const prices = await getPrices();
   const sample = escapeSample("numbers");
+  const christmas = isChristmasSeason(new Date());
   return (
     <>
       <JsonLd
@@ -71,13 +72,24 @@ export default async function Home() {
         <div aria-hidden className="blob pointer-events-none absolute bottom-0 left-1/2 size-80 rounded-full bg-violet/15 blur-3xl [animation-delay:-9s]" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-8 px-4 pb-14 pt-8 sm:px-6 md:grid-cols-[1.1fr_1fr] md:pt-14 lg:min-h-[calc(100svh-68px)] lg:gap-14 lg:py-12">
           <div className="animate-rise">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-semibold shadow-sm">
-              <span className="relative flex size-2">
-                <span className="absolute inline-flex size-full animate-ping rounded-full bg-mint opacity-60" />
-                <span className="relative inline-flex size-2 rounded-full bg-mint" />
-              </span>
-              Pruébalo gratis, sin registro
-            </p>
+            {christmas ? (
+              <Link
+                href="/regalos-de-navidad-personalizados"
+                className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-semibold shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <span aria-hidden>🎄</span>
+                Regalos de Navidad sin esperar envíos
+                <span aria-hidden className="text-coral-dark">→</span>
+              </Link>
+            ) : (
+              <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-sm font-semibold shadow-sm">
+                <span className="relative flex size-2">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-mint opacity-60" />
+                  <span className="relative inline-flex size-2 rounded-full bg-mint" />
+                </span>
+                Pruébalo gratis, sin registro
+              </p>
+            )}
             <h1 className="mt-5 font-display text-[2.75rem] font-black leading-[1.02] tracking-tight sm:text-6xl xl:text-7xl">
               Crea algo{" "}
               <span className="squiggle">
@@ -290,6 +302,12 @@ export default async function Home() {
       </section>
     </>
   );
+}
+
+/** Del 15 de noviembre al 6 de enero (Reyes) la cabecera lleva a la guía de Navidad. La página se regenera cada 5 min. */
+function isChristmasSeason(d: Date) {
+  const m = d.getMonth();
+  return (m === 10 && d.getDate() >= 15) || m === 11 || (m === 0 && d.getDate() <= 6);
 }
 
 /** Miniatura estática del periódico para la cabecera (sin interacción). */

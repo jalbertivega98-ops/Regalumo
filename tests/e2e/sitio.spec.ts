@@ -134,3 +134,14 @@ test("las visitas del dueño no cuentan y el panel puede poner las estadísticas
   await page.goto("/admin/visitas?dias=1");
   await expect(page.getByText("Todavía no hay visitas con origen registrado.")).toBeVisible();
 });
+
+test("una página que no existe da 404 en español, sin indexar y con caminos a los regalos", async ({ page }) => {
+  for (const path of ["/no-existe", "/a/b/c"]) {
+    const res = await page.goto(path);
+    expect(res?.status()).toBe(404);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Esta página no existe");
+    await expect(page.locator('meta[name="robots"][content*="noindex"]').first()).toBeAttached();
+    await expect(page.getByRole("link", { name: /Periódico personalizado/ }).first()).toBeVisible();
+    await expect(page.getByRole("banner")).toHaveCount(1);
+  }
+});

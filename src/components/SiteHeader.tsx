@@ -33,6 +33,8 @@ const EXTRA_NAV = [
 export function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  // Dentro de /crear ya se está creando: el botón solo distraería y sacaría del editor.
+  const creating = pathname?.startsWith("/crear") ?? false;
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -102,12 +104,14 @@ export function SiteHeader() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <Link
-              href="/crear"
-              className="btn btn-primary !px-4 !py-2.5 text-sm"
-            >
-              Crear gratis
-            </Link>
+            {!creating && (
+              <Link
+                href="/crear"
+                className="btn btn-primary !px-4 !py-2.5 text-sm"
+              >
+                Crear gratis
+              </Link>
+            )}
             <button
               type="button"
               className="grid size-11 place-items-center rounded-full border-2 border-ink bg-white lg:hidden"
@@ -186,6 +190,13 @@ export function SiteHeader() {
             className="btn btn-primary btn-shine mt-3 w-full text-lg"
           >
             Crear gratis, sin registro
+          </Link>
+          <Link
+            href="/mis-pedidos"
+            onClick={() => setOpen(false)}
+            className="mt-1 py-2 text-center text-sm font-semibold text-ink-soft underline underline-offset-4"
+          >
+            ¿Ya compraste? Recupera tus descargas
           </Link>
         </nav>
       </div>

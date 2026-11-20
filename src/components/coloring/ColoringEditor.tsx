@@ -165,7 +165,7 @@ export function ColoringEditor({ aiConfigured }: { aiConfigured: boolean }) {
         </div>
       )}
 
-      <input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
+      <input ref={fileInput} type="file" accept="image/*" multiple className="sr-only" tabIndex={-1} aria-label="Elegir fotos" onChange={(e) => { upload(e.target.files); e.target.value = ""; }} />
 
       {data.pages.length === 0 || !project ? (
         <div className="mt-6 grid items-center gap-6 lg:grid-cols-2">

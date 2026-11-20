@@ -118,16 +118,16 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
 
       <fieldset className="mt-5 grid gap-2 sm:grid-cols-2">
         <legend className="label">Elige</legend>
-        <label className={`rounded-2xl border-2 p-3 cursor-pointer ${sku === "single" ? "border-ink" : "border-line"}`}>
+        <label className={`rounded-2xl border-2 p-3 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet ${sku === "single" ? "border-ink" : "border-line"}`}>
           <input type="radio" name="sku" className="sr-only" checked={sku === "single"} onChange={() => setSku("single")} />
           <span className="font-bold block">{info.name}</span>
           <span className="text-lg font-display font-bold">{prices ? eur(prices.single) : "…"}</span>
         </label>
-        <label className={`rounded-2xl border-2 p-3 cursor-pointer ${sku === "pack" ? "border-ink" : "border-line"}`}>
+        <label className={`rounded-2xl border-2 p-3 cursor-pointer has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-violet ${sku === "pack" ? "border-ink" : "border-line"}`}>
           <input type="radio" name="sku" className="sr-only" checked={sku === "pack"} onChange={() => setSku("pack")} />
           <span className="font-bold block">{PACK.name}</span>
           <span className="text-lg font-display font-bold">{prices ? eur(prices.pack) : "…"}</span>
-          <span className="hint block">Este regalo + los otros dos productos cuando quieras.</span>
+          <span className="hint block">Este regalo + los otros dos productos cuando quieras.{prices ? ` Sale a ${eur(Math.floor(prices.pack / 3))} cada uno.` : ""}</span>
         </label>
       </fieldset>
 
@@ -150,7 +150,7 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
       </div>
 
       <label className="mt-4 flex gap-3 text-sm items-start">
-        <input type="checkbox" className="mt-1 size-5 accent-[#1E1633]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
+        <input type="checkbox" className="mt-1 size-5 shrink-0 accent-[#1E1633]" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
         <span>
           Quiero recibir el contenido digital de inmediato y acepto que, una vez iniciada la descarga, pierdo el derecho de desistimiento.
           He leído las <Link href="/legal/condiciones" className="underline" target="_blank">condiciones de venta</Link>.
@@ -159,6 +159,8 @@ export function UnlockPanel({ product, projectId, token, ensureProject, disabled
 
       {error && <p role="alert" className="mt-3 rounded-xl bg-coral/10 p-3 text-sm font-semibold text-coral-dark">{error}</p>}
       {disabledReason && <p className="mt-3 hint">{disabledReason}</p>}
+
+      {!consent && !disabledReason && <p className="mt-3 hint">Marca la casilla de arriba para poder pagar.</p>}
 
       <button className="btn btn-primary mt-5 w-full text-lg" onClick={buy} disabled={busy || !consent || !!disabledReason}>
         {busy ? "Abriendo pago seguro…" : `Pagar ${price !== null ? eur(price) : ""} y descargar`}
