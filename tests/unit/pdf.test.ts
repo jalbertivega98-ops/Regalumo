@@ -13,6 +13,8 @@ const save = (name: string, b: Buffer) => {
   mkdirSync(OUT, { recursive: true });
   writeFileSync(path.join(OUT, name), b);
 };
+/** Tamaño de cada página en puntos («ancho x alto»), leído del MediaBox. */
+const sizes = (b: Buffer) => [...b.toString("latin1").matchAll(/\/MediaBox \[0 0 ([\d.]+) ([\d.]+)\]/g)].map((m) => `${Math.round(+m[1])}x${Math.round(+m[2])}`);
 const pages = (b: Buffer) => (b.toString("latin1").match(/\/Type \/Page\b/g) || []).length;
 
 describe("PDF", () => {
@@ -38,8 +40,13 @@ describe("PDF", () => {
       const d = { ...demoNewspaper(), template, photos: [{ id: "a", caption: "Simba, el rey de la casa" }, { id: "b", caption: "Café de los domingos" }, { id: "c", caption: "" }] };
       const b = await renderNewspaperPdf(d, { a: photo, b: photo2, c: photo }, { watermark: template === "moderno" });
       expect(pages(b)).toBe(1);
+      expect(sizes(b)).toEqual(["842x1191"]); // A3 vertical de verdad, no recortado al contenido
       save(`periodico-${template}.pdf`, b);
     }
+    // Con lo mínimo (nombre y sin fotos) la página sigue siendo un A3 entero.
+    const minimal = await renderNewspaperPdf({ ...demoNewspaper(), anecdotes: [], messages: [], dates: [], quote: "", photos: [] }, {});
+    expect(sizes(minimal)).toEqual(["842x1191"]);
+    save("periodico-minimo.pdf", minimal);
     const max = newspaperSchema.parse({
       honoree: "María de las Mercedes Fernández-Villaverde y Robles".slice(0, LIMITS.honoree),
       paperName: "La Gaceta Familiar de los Domingos".slice(0, LIMITS.paperName),

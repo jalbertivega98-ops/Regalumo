@@ -35,6 +35,7 @@ export function NewspaperEditor() {
   const [token, setToken] = useState("");
   const [data, setData] = useState<NewspaperData>(() => newspaperSchema.parse({}));
   const [loading, setLoading] = useState(true);
+  const [overflow, setOverflow] = useState(false);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState("");
   const [uploading, setUploading] = useState(0);
@@ -418,7 +419,18 @@ export function NewspaperEditor() {
 
         <div className="order-first lg:order-none">
           <div className="lg:sticky lg:top-20 space-y-4">
-            <NewspaperPreview data={data} photoUrl={photoUrl} watermark={!paid} onPhotoSlotClick={paid ? undefined : () => fileInput.current?.click()} />
+            <NewspaperPreview
+              data={data}
+              photoUrl={photoUrl}
+              watermark={!paid}
+              onPhotoSlotClick={paid ? undefined : () => fileInput.current?.click()}
+              onOverflow={setOverflow}
+            />
+            {overflow && !paid && (
+              <p role="status" className="rounded-xl bg-sun/30 p-3 text-sm font-semibold">
+                Hay tanto texto que no cabe entero en el A3. Acorta algún texto o quita una foto para que quede perfecto.
+              </p>
+            )}
             <p className="hint text-center">
               Vista previa en pantalla. El PDF final es A3 vertical (29,7 × 42 cm), vectorial y sin marca de agua.
             </p>

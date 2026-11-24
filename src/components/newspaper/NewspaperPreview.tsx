@@ -15,9 +15,9 @@ import "@fontsource/fraunces/400.css";
 import "@fontsource/fraunces/700.css";
 import "@fontsource/fraunces/900.css";
 import "@fontsource/caveat/400.css";
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from "react";
 import { compose, headlineSize, type NewspaperData } from "@/lib/newspaper/model";
-import { PAGE, THEMES, WEATHER, leadSize, mastSize, smallTextSize } from "@/lib/newspaper/theme";
+import { DENSITY, PAGE, THEMES, WEATHER, leadSize, mastSize, smallTextSize } from "@/lib/newspaper/theme";
 
 /**
  * Vista previa HTML del periódico. Replica la maqueta del PDF (mismas medidas en pt→px)
@@ -28,13 +28,38 @@ export function NewspaperPreview({
   photoUrl,
   watermark = true,
   onPhotoSlotClick,
+  onOverflow,
 }: {
   data: NewspaperData;
   photoUrl: (id: string) => string | null;
   watermark?: boolean;
   onPhotoSlotClick?: () => void;
+  /** Avisa si, aun con las fotos más bajas, el contenido no cabe en el A3. */
+  onOverflow?: (overflow: boolean) => void;
 }) {
   const wrap = useRef<HTMLDivElement>(null);
+  const page = useRef<HTMLDivElement>(null);
+  // Mismo criterio que el PDF: si no cabe, se bajan la foto principal y la tira de fotos un nivel cada vez.
+  const [fit, setFit] = useState({ key: "", level: 0 });
+  const dataKey = JSON.stringify(data);
+  const level = fit.key === dataKey ? fit.level : 0;
+  const density = DENSITY[level];
+  // Las fuentes web cambian el alto de los textos al cargar: se vuelve a medir cuando están listas.
+  const [fontsReady, setFontsReady] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    document.fonts?.ready.then(() => alive && setFontsReady(true));
+    return () => {
+      alive = false;
+    };
+  }, []);
+  useLayoutEffect(() => {
+    const el = page.current;
+    if (!el) return;
+    const over = el.scrollHeight > PAGE.height + 1;
+    if (over && level < DENSITY.length - 1) setFit({ key: dataKey, level: level + 1 });
+    else onOverflow?.(over);
+  }, [level, dataKey, onOverflow, fontsReady]);
   const [scale, setScale] = useState(0.4);
   useEffect(() => {
     const el = wrap.current;
@@ -72,6 +97,7 @@ export function NewspaperPreview({
   return (
     <div ref={wrap} className="relative w-full" style={{ height: PAGE.height * scale }}>
       <div
+        ref={page}
         aria-label={`Vista previa del periódico ${c.paperName}`}
         style={{
           width: PAGE.width,
@@ -118,7 +144,7 @@ export function NewspaperPreview({
           <div style={{ fontStyle: "italic", fontSize: 16, marginTop: 10, color: t.muted }}>{c.subheadline}</div>
         </div>
         <div style={rule(1)} />
-        <div style={{ display: "flex", padding: "14px 0", ...rule(1), flexGrow: main ? 1 : 0, flexShrink: 1, minHeight: main ? 330 : undefined }}>
+        <div style={{ display: "flex", padding: "14px 0", ...rule(1), flexGrow: main ? 1 : 0, flexShrink: 1, minHeight: main ? density.mainMin : undefined }}>
           {main ? (
             <div style={{ width: "61%", paddingRight: 14, display: "flex", flexDirection: "column" }}>
               {photo(main.id, { width: "100%", flexGrow: 1, minHeight: 0 })}
@@ -168,7 +194,7 @@ export function NewspaperPreview({
           <div style={{ display: "flex", padding: "12px 0", ...rule(1) }}>
             {strip.map((p, i) => (
               <div key={p.id} style={{ flex: 1, paddingLeft: i ? 8 : 0, paddingRight: i < strip.length - 1 ? 8 : 0 }}>
-                {photo(p.id, { width: "100%", height: strip.length === 1 ? 220 : 150 })}
+                {photo(p.id, { width: "100%", height: strip.length === 1 ? density.strip1 : density.stripN })}
                 {p.caption && <div style={{ fontSize: 9, fontStyle: "italic", marginTop: 3, color: t.muted }}>{p.caption}</div>}
               </div>
             ))}

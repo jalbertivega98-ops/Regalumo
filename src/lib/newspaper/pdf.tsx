@@ -2,7 +2,7 @@ import React from "react";
 import { Document, Image, Page, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import { registerFonts } from "../pdf/fonts";
 import { compose, headlineSize, type NewspaperData } from "./model";
-import { PAGE, THEMES, WEATHER, leadSize, mastSize, smallTextSize } from "./theme";
+import { DENSITY, PAGE, THEMES, WEATHER, leadSize, mastSize, smallTextSize, type Density } from "./theme";
 
 export type PhotoBuffers = Record<string, Buffer>;
 
@@ -12,10 +12,30 @@ export type PhotoBuffers = Record<string, Buffer>;
  */
 export async function renderNewspaperPdf(d: NewspaperData, photos: PhotoBuffers, opts: { watermark?: boolean } = {}) {
   registerFonts();
-  return renderToBuffer(<NewspaperDoc d={d} photos={photos} watermark={!!opts.watermark} />);
+  const wm = !!opts.watermark;
+  // Con wrap={false}, react-pdf ajusta el alto de la página a lo que ocupa el contenido e ignora el A3 pedido:
+  // una portada con poco texto salía más corta (p. ej. 29,7 × 27 cm) y una con mucho, más larga.
+  // Por eso se mide el contenido: se busca el primer nivel de compactación en el que cabe y se maqueta
+  // otra vez en una caja de alto A3 exacto, para que la foto principal crezca y llene la página.
+  // Si ni el más compacto cabe, se entrega algo más largo antes que montar unos textos sobre otros
+  // (el editor ya avisa al cliente de que se pasa del A3).
+  let natural: Buffer | null = null;
+  for (const density of DENSITY) {
+    natural = await renderToBuffer(<NewspaperDoc d={d} photos={photos} watermark={wm} density={density} fill={false} />);
+    if (pageHeight(natural) <= PAGE.height + 0.5) {
+      return renderToBuffer(<NewspaperDoc d={d} photos={photos} watermark={wm} density={density} fill />);
+    }
+  }
+  return natural!;
 }
 
-function NewspaperDoc({ d, photos, watermark }: { d: NewspaperData; photos: PhotoBuffers; watermark: boolean }) {
+/** Alto de la primera página del PDF en puntos (del MediaBox). */
+export function pageHeight(pdf: Buffer) {
+  const m = pdf.toString("latin1").match(/\/MediaBox \[0 0 [\d.]+ ([\d.]+)\]/);
+  return m ? Number(m[1]) : 0;
+}
+
+function NewspaperDoc({ d, photos, watermark, density, fill }: { d: NewspaperData; photos: PhotoBuffers; watermark: boolean; density: Density; fill: boolean }) {
   const c = compose(d);
   const t = THEMES[c.template];
   const main = c.photos[0] && photos[c.photos[0].id] ? c.photos[0] : null;
@@ -42,6 +62,7 @@ function NewspaperDoc({ d, photos, watermark }: { d: NewspaperData; photos: Phot
             style={{ position: "absolute", top: 14, left: 14, right: 14, bottom: 14, borderWidth: 2, borderColor: t.rule, borderStyle: "solid" }}
           />
         )}
+        <View style={{ height: fill ? PAGE.height - 2 * PAGE.margin : undefined, flexDirection: "column" }}>
         {/* Línea superior */}
         <View style={{ flexDirection: "row", justifyContent: "space-between", fontSize: 9, paddingBottom: 4, ...rule(1), textTransform: "uppercase", letterSpacing: 1 }}>
           <Text>{c.edition}</Text>
@@ -82,10 +103,10 @@ function NewspaperDoc({ d, photos, watermark }: { d: NewspaperData; photos: Phot
         <View style={rule(1)} />
 
         {/* Bloque principal */}
-        <View style={{ flexDirection: "row", paddingTop: 14, paddingBottom: 14, ...rule(1), flexGrow: main ? 1 : 0, flexShrink: 1, minHeight: main ? 330 : undefined }}>
+        <View style={{ flexDirection: "row", paddingTop: 14, paddingBottom: 14, ...rule(1), flexGrow: main ? 1 : 0, flexShrink: 1, minHeight: main ? density.mainMin : undefined }}>
           {main && (
             <View style={{ width: "61%", paddingRight: 14, flexDirection: "column" }}>
-              <Image src={{ data: photos[main.id], format: "jpg" }} style={{ width: "100%", flexGrow: 1, objectFit: "cover" }} />
+              <Image src={{ data: photos[main.id], format: "jpg" }} style={{ width: "100%", flexGrow: 1, flexBasis: 0, objectFit: "cover" }} />
               {main.caption ? <Text style={{ fontSize: 10, fontStyle: "italic", marginTop: 5, color: t.muted }}>{main.caption}</Text> : null}
             </View>
           )}
@@ -119,7 +140,7 @@ function NewspaperDoc({ d, photos, watermark }: { d: NewspaperData; photos: Phot
           <View style={{ flexDirection: "row", paddingTop: 12, paddingBottom: 12, ...rule(1) }}>
             {strip.map((p, i) => (
               <View key={p.id} style={{ flex: 1, paddingLeft: i ? 8 : 0, paddingRight: i < strip.length - 1 ? 8 : 0 }}>
-                <Image src={{ data: photos[p.id], format: "jpg" }} style={{ width: "100%", height: strip.length === 1 ? 220 : 150, objectFit: "cover" }} />
+                <Image src={{ data: photos[p.id], format: "jpg" }} style={{ width: "100%", height: strip.length === 1 ? density.strip1 : density.stripN, objectFit: "cover" }} />
                 {p.caption ? <Text style={{ fontSize: 9, fontStyle: "italic", marginTop: 3, color: t.muted }}>{p.caption}</Text> : null}
               </View>
             ))}
@@ -165,6 +186,8 @@ function NewspaperDoc({ d, photos, watermark }: { d: NewspaperData; photos: Phot
         <View style={{ borderTopWidth: 1, borderTopColor: t.rule, paddingTop: 6, flexDirection: "row", justifyContent: "space-between" }}>
           <Text style={{ fontFamily: "Caveat", fontSize: 20, color: c.template === "moderno" ? t.accent : t.ink }}>{c.signoff || " "}</Text>
           <Text style={{ fontSize: 8, color: t.muted, alignSelf: "flex-end" }}>{c.occasion} · Ejemplar único</Text>
+        </View>
+
         </View>
 
         {watermark && (
