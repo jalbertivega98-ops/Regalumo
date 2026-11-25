@@ -10,6 +10,10 @@ test("periódico: datos propios, foto, valoración, pago simulado y PDF sin marc
   await expect(page.getByText("Lucía García").first()).toBeVisible();
   await page.click('[aria-label="4 de 5"]');
   await page.fill("#unlock-email", "prueba@example.com");
+  // Pagar sin marcar la casilla no deja el botón «muerto»: avisa de qué falta y no sale de la página.
+  await page.getByRole("button", { name: /Pagar/ }).click();
+  await expect(page.getByText("Falta un paso: marca la casilla")).toBeVisible();
+  await expect(page).not.toHaveURL(/simular/);
   const { bytes } = await payAndDownload(page);
   expect(bytes.length).toBeGreaterThan(50_000);
 });

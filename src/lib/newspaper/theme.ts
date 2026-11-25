@@ -3,6 +3,19 @@ import type { TemplateId } from "./model";
 /** Tokens visuales compartidos por la vista previa HTML y el PDF. Unidades: pt (= px en la vista previa). */
 export const PAGE = { width: 842, height: 1191, margin: 34 };
 
+/**
+ * Niveles de compactación: si el contenido no cabe en el A3, se prueba el siguiente nivel
+ * (foto principal y tira de fotos más bajas). Lo usan el PDF y la vista previa, para que coincidan.
+ */
+export const DENSITY = [
+  { mainMin: 330, strip1: 220, stripN: 150 },
+  { mainMin: 290, strip1: 175, stripN: 125 },
+  { mainMin: 250, strip1: 135, stripN: 105 },
+  { mainMin: 210, strip1: 105, stripN: 85 },
+  { mainMin: 180, strip1: 80, stripN: 70 },
+] as const;
+export type Density = (typeof DENSITY)[number];
+
 export interface PaperTheme {
   paper: string;
   ink: string;
