@@ -32,7 +32,7 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
   if (!page) notFound();
   const prices = await getPrices();
   const product = page.product === "all" ? null : PRODUCTS[page.product];
-  const href = product ? product.editorPath : "/crear";
+  const href = page.ctaHref ?? (product ? product.editorPath : "/crear");
 
   return (
     <>
@@ -54,7 +54,15 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
         <div>
           {page.visual === "newspaper" && <NewspaperShowcase compact />}
           {page.visual === "coloring" && <ColoringShowcase sample={page.slug === "foto-para-colorear" ? "chelsea" : "coffee"} eager />}
-          {page.visual === "escape" && <EscapeShowcase sample={escapeSample(page.slug === "escape-room-para-imprimir" ? "caesar" : "numbers")} />}
+          {page.visual === "escape" && (
+            <EscapeShowcase
+              sample={
+                page.slug === "escape-room-de-navidad"
+                  ? escapeSample("wordsearch", "navidad")
+                  : escapeSample(page.slug === "escape-room-para-imprimir" ? "caesar" : "numbers")
+              }
+            />
+          )}
           {page.visual === "all" && <ColoringShowcase eager />}
         </div>
       </section>
@@ -77,6 +85,18 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
                 {s.bullets.map((b) => (
                   <li key={b} className="flex gap-3 text-lg"><span aria-hidden className="text-coral">✦</span>{b}</li>
                 ))}
+              </ul>
+            )}
+            {s.links && (
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                {s.links.map((slug) => {
+                  const l = getSeoPage(slug);
+                  return l ? (
+                    <li key={slug}>
+                      <Link href={`/${slug}`} className="font-semibold text-coral underline underline-offset-4 hover:text-ink">{l.label} →</Link>
+                    </li>
+                  ) : null;
+                })}
               </ul>
             )}
           </section>

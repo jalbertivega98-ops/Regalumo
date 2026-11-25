@@ -6,7 +6,7 @@ import { config } from "@/lib/config";
  * Fecha de la última revisión del contenido público. Cámbiala al editar textos:
  * Google solo se fía de «lastmod» si no cambia en cada despliegue.
  */
-const CONTENT_UPDATED = new Date("2026-11-20");
+const CONTENT_UPDATED = new Date("2026-11-25");
 
 /**
  * Solo páginas públicas indexables. Nunca proyectos, pedidos, fotos ni el panel.

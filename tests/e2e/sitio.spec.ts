@@ -18,6 +18,8 @@ const SEO = [
   "/regalo-de-jubilacion-original",
   "/regalos-de-reyes-para-ninos",
   "/regalo-amigo-invisible-original",
+  "/escape-room-de-navidad",
+  "/regalo-para-abuelos-personalizado",
 ];
 
 test("la portada muestra eslogan, productos y precios", async ({ page }) => {

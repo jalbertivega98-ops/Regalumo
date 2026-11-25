@@ -13,7 +13,7 @@ export { AGES, DIFFICULTIES, DURATIONS, puzzleCount, type AgeId, type Difficulty
 
 export const escapeSchema = z.object({
   age: z.enum(["peques", "ninos", "jovenes", "adultos"]).default("ninos"),
-  theme: z.enum(["piratas", "espacio", "detectives", "magia", "selva", "museo"]).default("piratas"),
+  theme: z.enum(["piratas", "espacio", "detectives", "magia", "selva", "museo", "navidad"]).default("piratas"),
   players: z.coerce.number().int().min(1).max(20).default(4),
   difficulty: z.enum(["facil", "media", "dificil"]).default("media"),
   duration: z.coerce.number().refine((v) => (DURATIONS as readonly number[]).includes(v)).default(60),
