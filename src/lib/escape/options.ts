@@ -25,4 +25,5 @@ export const THEME_OPTIONS = [
   { id: "magia", name: "Magia", emoji: "🪄" },
   { id: "selva", name: "Selva", emoji: "🌿" },
   { id: "museo", name: "Misterio en el museo", emoji: "🏛️" },
+  { id: "navidad", name: "Navidad", emoji: "🎄" },
 ] as const;

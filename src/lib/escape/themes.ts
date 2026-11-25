@@ -2,7 +2,7 @@
  * Temáticas del escape room. Todo el texto es original de REGALUMO.
  * {heroe} = nombre del protagonista (opcional), {equipo} = nombre del equipo.
  */
-export type ThemeId = "piratas" | "espacio" | "detectives" | "magia" | "selva" | "museo";
+export type ThemeId = "piratas" | "espacio" | "detectives" | "magia" | "selva" | "museo" | "navidad";
 
 export interface Theme {
   id: ThemeId;
@@ -172,6 +172,31 @@ export const THEMES: Record<ThemeId, Theme> = {
     people: ["Frida", "Diego", "Sofía", "Pablo"],
     colors: "Burdeos y dorado",
   },
+  navidad: {
+    id: "navidad",
+    name: "Navidad",
+    emoji: "🎄",
+    title: "La noche de los regalos escondidos",
+    words: ["REGALO", "ESTRELLA", "TRINEO", "RENO", "NIEVE", "ABETO", "CAMPANA", "TURRON", "BOLA", "LAZO", "GUIRNALDA", "CARTA"],
+    intro:
+      "Esta noche los regalos tenían que estar junto al árbol, pero el duende Cascabel, que es muy despistado, los guardó en un baúl para que nadie los viera antes de tiempo… y ha olvidado la palabra que lo abre. Por suerte, fue dejando pistas por toda la casa para acordarse. {heroe_frase}Si resolvéis sus acertijos antes de la cena, los regalos llegarán a tiempo.",
+    guardian: "el duende Cascabel",
+    chapters: [
+      "Junto al árbol hay un sobre con olor a canela.",
+      "Una bola del árbol tiene algo escrito por dentro.",
+      "En la cocina, alguien ha dejado una nota bajo el plato del turrón.",
+      "El calcetín de la chimenea esconde un papel doblado.",
+      "Se oyen cascabeles: la siguiente pista está cerca de la ventana.",
+      "Una carta sin terminar aparece encima de la mesa.",
+      "Las luces del árbol parpadean y señalan un rincón.",
+      "El baúl de los regalos ya está a la vista.",
+      "Solo queda un reto antes de abrir el baúl.",
+    ],
+    ending: "¡El baúl se abre y los regalos vuelven a su sitio junto al árbol! El duende Cascabel promete apuntarse la palabra para el año que viene.",
+    prize: "el baúl de los regalos",
+    people: ["Noelia", "Gaspar", "Nieves", "Mateo"],
+    colors: "Rojo, verde y dorado",
+  },
 };
 
 /** Palabra final por número de acertijos: se forma con las letras de las tarjetas de recompensa. */
@@ -182,6 +207,7 @@ export const FINAL_WORDS: Record<ThemeId, Record<number, string>> = {
   magia: { 4: "MAGO", 5: "HADAS", 6: "VARITA", 7: "HECHIZO", 8: "AMULETOS", 9: "ENCANTADO" },
   selva: { 4: "RANA", 5: "TUCAN", 6: "JAGUAR", 7: "PANTERA", 8: "AVENTURA", 9: "ANACONDAS" },
   museo: { 4: "ARTE", 5: "MUSAS", 6: "TESORO", 7: "PINTURA", 8: "RELIQUIA", 9: "ESCULTURA" },
+  navidad: { 4: "RENO", 5: "BELEN", 6: "REGALO", 7: "CAMPANA", 8: "ESTRELLA", 9: "GUIRNALDA" },
 };
 
 export const THEME_IDS = Object.keys(THEMES) as ThemeId[];

@@ -23,6 +23,7 @@ describe("PDF", () => {
       { theme: "piratas", age: "ninos", duration: 60, hero: "Lucía" },
       { theme: "espacio", age: "peques", duration: 45 },
       { theme: "museo", age: "adultos", duration: 90, difficulty: "dificil", players: 8 },
+      { theme: "navidad", age: "jovenes", duration: 60, hero: "Nico" },
     ].entries()) {
       const g = generateGame(inp);
       const b = await renderEscapePdf(g);

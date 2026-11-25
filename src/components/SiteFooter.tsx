@@ -20,6 +20,7 @@ export function SiteFooter() {
             <li><Link href="/escape-room-personalizado">Escape room personalizado</Link></li>
             <li><Link href="/escape-room-para-cumpleanos">Escape room para cumpleaños</Link></li>
             <li><Link href="/escape-room-para-imprimir">Escape room para imprimir</Link></li>
+            <li><Link href="/escape-room-de-navidad">Escape room de Navidad</Link></li>
           </ul>
         </div>
         <div>
@@ -32,6 +33,7 @@ export function SiteFooter() {
             <li><Link href="/regalo-personalizado-con-foto">Regalo personalizado con foto</Link></li>
             <li><Link href="/regalos-de-navidad-personalizados">Regalos de Navidad</Link></li>
             <li><Link href="/regalos-de-reyes-para-ninos">Regalos de Reyes para niños</Link></li>
+            <li><Link href="/regalo-para-abuelos-personalizado">Regalo para abuelos</Link></li>
             <li><Link href="/regalo-amigo-invisible-original">Amigo invisible original</Link></li>
             <li><Link href="/periodico-de-boda">Periódico de boda</Link></li>
             <li><Link href="/regalo-de-aniversario-original">Regalo de aniversario</Link></li>

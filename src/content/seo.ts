@@ -16,7 +16,10 @@ export interface SeoPage {
   product: ProductId | "all";
   visual: "newspaper" | "escape" | "coloring" | "all";
   cta: string;
-  sections: { h2: string; paragraphs: string[]; bullets?: string[] }[];
+  /** Enlace del botón si no es el editor del producto (p. ej. con una temática ya elegida). */
+  ctaHref?: string;
+  /** links: guías enlazadas dentro de la sección (por su slug). */
+  sections: { h2: string; paragraphs: string[]; bullets?: string[]; links?: string[] }[];
   faq: { q: string; a: string }[];
   related: string[];
 }
@@ -58,7 +61,7 @@ export const SEO_PAGES: SeoPage[] = [
       {
         h2: "Temáticas y edades",
         paragraphs: [
-          "Puedes elegir piratas, espacio, detectives, magia, selva o misterio en el museo. Para peques de 5 a 7 años hay retos de contar figuras y laberintos; para 8 a 11, cifrados sencillos y sopas de letras; para jóvenes y adultos, lógica, cifrado César y series numéricas.",
+          "Puedes elegir piratas, espacio, detectives, magia, selva, misterio en el museo o Navidad. Para peques de 5 a 7 años hay retos de contar figuras y laberintos; para 8 a 11, cifrados sencillos y sopas de letras; para jóvenes y adultos, lógica, cifrado César y series numéricas.",
         ],
       },
     ],
@@ -72,7 +75,7 @@ export const SEO_PAGES: SeoPage[] = [
   {
     slug: "escape-room-para-cumpleanos",
     label: "Escape room para cumpleaños",
-    title: "Escape room para cumpleaños infantil y adulto",
+    title: "Escape room de cumpleaños infantil para imprimir",
     description:
       "Organiza un escape room de cumpleaños con el nombre del protagonista, retos adaptados a su edad y todo listo para imprimir. Demo gratuita sin registro.",
     eyebrow: "Fiestas de cumpleaños",
@@ -106,11 +109,31 @@ export const SEO_PAGES: SeoPage[] = [
           "Los retos para 5 a 7 años no requieren leer mucho y la guía recomienda acompañar la búsqueda. Nunca escondas sobres en sitios altos, cerca de enchufes o en la cocina.",
         ],
       },
+      {
+        h2: "El día de la fiesta, paso a paso",
+        paragraphs: ["Con media hora de preparación tienes el juego listo:"],
+        bullets: [
+          "La víspera: imprime el PDF, recorta las tarjetas y mete cada acertijo en un sobre numerado.",
+          "Antes de que lleguen: esconde los sobres por la casa o el jardín y prepara el «cofre» con el premio.",
+          "Al empezar: lee la historia en voz alta y entrega el primer sobre.",
+          "Durante el juego: comprueba respuestas con la hoja de soluciones y da pistas si se atascan.",
+          "Al final: con la palabra secreta se abre el cofre y llega la tarta.",
+        ],
+      },
+      {
+        h2: "Temáticas para cada fiesta",
+        paragraphs: [
+          "Piratas, espacio, detectives, magia, selva, misterio en el museo y Navidad. Si la fiesta tiene una temática, elige la más parecida: el nombre de quien cumple años aparece en la historia y el título.",
+        ],
+        links: ["escape-room-de-navidad", "escape-room-para-imprimir"],
+      },
     ],
     faq: [
       { q: "¿Para qué edades sirve?", a: "Desde 5 años hasta adultos. Al elegir la edad cambian el tipo de retos, el vocabulario y la dificultad." },
       { q: "¿Puedo poner el nombre de quien cumple años?", a: "Sí, el campo «protagonista» incluye su nombre en el título y en la historia." },
       { q: "¿Cuánto cuesta?", a: "El juego completo cuesta 9,99 € e incluye el PDF para imprimir tantas copias como necesites para tu fiesta." },
+      { q: "¿Cuántos niños pueden jugar?", a: "Lo ideal son de 3 a 6 por equipo. Con más invitados, imprime los acertijos dos veces y haz dos equipos que compitan por llegar antes al cofre." },
+      { q: "¿Se puede jugar en un piso pequeño?", a: "Sí. Los sobres se pueden esconder en una sola habitación; lo importante son los acertijos, no el espacio." },
     ],
     related: ["escape-room-personalizado", "periodico-de-cumpleanos", "escape-room-para-imprimir"],
   },
@@ -202,11 +225,11 @@ export const SEO_PAGES: SeoPage[] = [
   {
     slug: "periodico-de-cumpleanos",
     label: "Periódico de cumpleaños",
-    title: "Periódico de cumpleaños personalizado para regalar",
+    title: "Periódico o diario de cumpleaños personalizado",
     description:
-      "Regala un periódico de cumpleaños con su nombre en la cabecera, fotos, anécdotas y mensajes de la familia. Pruébalo gratis y descarga el PDF.",
+      "Crea un periódico o diario de cumpleaños personalizado con su nombre en la cabecera, fotos, anécdotas y mensajes de la familia. Pruébalo gratis.",
     eyebrow: "Regalo de cumpleaños",
-    h1: "Periódico de cumpleaños: su día merece portada",
+    h1: "Periódico de cumpleaños personalizado: su día merece portada",
     intro:
       "Un 18, un 40, un 80 o un primer cumpleaños: el periódico convierte los recuerdos de la familia en una portada que se lee, se comparte en la fiesta y se guarda durante años.",
     product: "newspaper",
@@ -234,22 +257,42 @@ export const SEO_PAGES: SeoPage[] = [
         h2: "Hecho con tus palabras",
         paragraphs: ["El titular puede incluir la edad («¡Marta cumple 40 años!») y todos los textos se pueden editar. Nada se inventa: la portada solo muestra lo que tú escribes."],
       },
+      {
+        h2: "¿Diario de cumpleaños o periódico del día que nació?",
+        paragraphs: [
+          "Mucha gente busca un «diario de cumpleaños» pensando en el periódico real del día en que nació alguien. Eso son reimpresiones de prensa antigua. Lo que creamos en REGALUMO es otra cosa: un periódico nuevo cuya noticia principal es la propia persona, con vuestras fotos y recuerdos.",
+          "Si quieres el toque del día de su nacimiento, pon esa fecha en la sección «Fechas importantes» junto al lugar donde nació, y añade lo que la familia recuerda de aquel día.",
+        ],
+      },
+      {
+        h2: "Titulares de ejemplo según la edad",
+        paragraphs: ["Sirven de punto de partida; luego los cambias a tu gusto:"],
+        bullets: [
+          "1 año: «Lucas celebra su primera vuelta al sol».",
+          "18 años: «Paula alcanza la mayoría de edad y promete seguir siendo la misma».",
+          "30 o 40 años: «Edición especial: Marta cumple 40 y la familia lo celebra en portada».",
+          "50 o 60 años: «Medio siglo de anécdotas: Javier cumple 50».",
+          "80 años o más: «La abuela Carmen cumple 80 rodeada de nietos».",
+        ],
+      },
     ],
     faq: [
       { q: "¿Sirve para un cumpleaños infantil?", a: "Sí. Funciona igual de bien para un primer cumpleaños, con fotos del bebé y mensajes de la familia." },
       { q: "¿Cuánto cuesta?", a: "6,99 € por el PDF sin marca de agua. La portada y la vista previa son gratis." },
       { q: "¿Puedo hacer cambios después de pagar?", a: "El PDF pagado corresponde a la versión que compraste. Revisa bien la vista previa antes del pago." },
+      { q: "¿Incluye las noticias reales del día en que nació?", a: "No. Es un periódico personalizado nuevo, no una copia de la prensa de aquel día. Puedes añadir su fecha de nacimiento y los recuerdos de la familia en la sección de fechas importantes." },
+      { q: "¿En qué tamaño se imprime?", a: "El PDF está pensado para A3, el tamaño ideal para enmarcar. También se puede imprimir en A4 para repartir copias." },
     ],
     related: ["periodico-personalizado", "escape-room-para-cumpleanos", "regalos-personalizados"],
   },
   {
     slug: "regalos-personalizados",
     label: "Regalos personalizados",
-    title: "Regalos personalizados originales y digitales",
+    title: "Regalos personalizados originales online y con foto",
     description:
-      "Ideas de regalos personalizados que puedes crear en minutos: periódico con su historia, escape room a medida y libro para colorear con tus fotos.",
+      "Crea regalos personalizados online con tus fotos y vuestra historia: periódico, escape room y libro para colorear. Pruébalo gratis y descárgalo al momento.",
     eyebrow: "Regalos personalizados",
-    h1: "Regalos personalizados que se crean en minutos",
+    h1: "Regalos personalizados online: créalos tú en minutos",
     intro:
       "Un buen regalo personalizado habla de la persona que lo recibe. En REGALUMO puedes crear tres tipos de regalo, probarlos gratis con tus propios datos y descargarlos al momento para imprimir o compartir.",
     product: "all",
@@ -275,11 +318,51 @@ export const SEO_PAGES: SeoPage[] = [
         ],
         bullets: ["Periódico: 6,99 €", "Libro para colorear: 7,99 €", "Escape room: 9,99 €", "Pack de los tres: 19,99 €"],
       },
+      {
+        h2: "Cómo crear un regalo personalizado paso a paso",
+        paragraphs: ["Todo se hace desde el móvil o el ordenador, sin instalar nada:"],
+        bullets: [
+          "Elige el regalo: periódico, escape room o libro para colorear.",
+          "Añade lo que lo hace único: nombres, fotos, anécdotas, la edad o la temática favorita.",
+          "Mira la vista previa gratis y cambia lo que quieras tantas veces como necesites.",
+          "Si te gusta, paga y descarga el PDF al momento para imprimirlo o enviarlo.",
+        ],
+      },
+      {
+        h2: "Qué regalo personalizado elegir según la persona",
+        paragraphs: ["Una forma rápida de acertar:"],
+        bullets: [
+          "Para alguien que lo guarda todo (padres, abuelos, pareja): el periódico con su historia, enmarcado.",
+          "Para niños de 5 a 10 años: el libro para colorear con sus fotos o un escape room con su nombre.",
+          "Para un grupo de amigos o la familia reunida: el escape room, porque se juega entre todos.",
+          "Para quien tiene mascota: láminas para colorear con fotos de su perro o su gato.",
+        ],
+      },
+      {
+        h2: "Ideas de regalos personalizados por ocasión",
+        paragraphs: ["Guías con ideas concretas, ejemplos y consejos para cada momento:"],
+        links: [
+          "regalos-de-navidad-personalizados",
+          "regalos-de-reyes-para-ninos",
+          "regalo-amigo-invisible-original",
+          "escape-room-de-navidad",
+          "regalo-para-abuelos-personalizado",
+          "periodico-de-cumpleanos",
+          "escape-room-para-cumpleanos",
+          "regalo-de-aniversario-original",
+          "periodico-de-boda",
+          "regalo-de-jubilacion-original",
+          "regalo-personalizado-con-foto",
+          "regalo-de-ultima-hora",
+        ],
+      },
     ],
     faq: [
       { q: "¿Recibo algo físico?", a: "No. Recibes un PDF de alta calidad para imprimir donde quieras o compartir en digital." },
       { q: "¿Tengo que crear una cuenta?", a: "No. Puedes probar y comprar sin registrarte. Tras el pago verás tu página privada de descarga, con un botón para copiar el enlace y guardarlo." },
       { q: "¿Qué pasa con mis fotos?", a: "Se guardan en privado, no se indexan en buscadores y puedes borrarlas cuando quieras. Los proyectos sin pagar se borran automáticamente pasado un tiempo." },
+      { q: "¿Cuánto se tarda en crear un regalo personalizado?", a: "Entre 5 y 15 minutos, según cuántas fotos y textos quieras añadir. El archivo se descarga justo después del pago." },
+      { q: "¿Puedo regalarlo a alguien que vive lejos?", a: "Sí. Como es un PDF, puedes enviárselo por mensaje o correo, o imprimirlo tú y entregarlo en mano cuando os veáis." },
     ],
     related: ["regalo-personalizado-con-foto", "regalos-de-navidad-personalizados", "regalo-de-ultima-hora"],
   },
@@ -453,11 +536,21 @@ export const SEO_PAGES: SeoPage[] = [
           "Las láminas se entregan en un PDF A4 a 300 ppp, con trazo negro sobre fondo blanco, para que salgan nítidas en cualquier impresora doméstica. La lámina de prueba gratuita tiene resolución limitada y marca de agua; el PDF de pago no.",
         ],
       },
+      {
+        h2: "Cómo hacer tu lámina en tres pasos",
+        paragraphs: [],
+        bullets: [
+          "Sube una foto con buena luz y un protagonista claro.",
+          "Elige el estilo: infantil, sencillo o detallado.",
+          "Mira la muestra gratis y, si te gusta, añade más fotos hasta completar tu PDF.",
+        ],
+      },
     ],
     faq: [
       { q: "¿Puedo hacer una sola lámina?", a: "Sí. La muestra de una lámina es gratis. Si compras, el PDF incluye portada y hasta 12 láminas por 7,99 €." },
       { q: "¿Puedo imprimirlas varias veces?", a: "Sí, para uso privado y familiar puedes imprimir todas las copias que quieras, por ejemplo una para cada niño de la fiesta." },
       { q: "¿Qué fotos salen mejor?", a: "Las que tienen un protagonista claro, buena luz y un fondo sencillo. Las fotos muy oscuras o con mucho fondo dan láminas más confusas." },
+      { q: "¿Necesito saber dibujar o usar un programa?", a: "No. Subes la foto desde el móvil o el ordenador y la lámina se genera sola en unos segundos. Solo eliges el estilo." },
     ],
     related: ["foto-para-colorear", "libro-para-colorear-personalizado", "escape-room-para-cumpleanos"],
   },
@@ -496,13 +589,18 @@ export const SEO_PAGES: SeoPage[] = [
           "Imprime el periódico en A3 y enróllalo con un lazo, mete las láminas en una carpeta con unas pinturas o guarda los sobres del escape room en una caja bajo el árbol. Si prefieres no imprimir, también puedes enviar el PDF por mensaje.",
         ],
       },
+      {
+        h2: "Ideas según para quién sea",
+        paragraphs: ["Guías con más detalle para cada persona de la lista:"],
+        links: ["regalo-para-abuelos-personalizado", "regalos-de-reyes-para-ninos", "regalo-amigo-invisible-original", "escape-room-de-navidad", "regalo-de-ultima-hora"],
+      },
     ],
     faq: [
       { q: "¿Llega a tiempo para Nochebuena o Reyes?", a: "Sí. No hay envío: el PDF se descarga justo después del pago, así que lo tienes aunque lo compres el mismo día." },
       { q: "¿Hay un pack con los tres regalos?", a: "Sí, el pack de periódico, escape room y libro para colorear cuesta 19,99 €." },
       { q: "¿Puedo probarlo antes?", a: "Sí. Todas las herramientas tienen una prueba gratuita real, sin registro ni tarjeta." },
     ],
-    related: ["regalos-de-reyes-para-ninos", "regalo-amigo-invisible-original", "regalo-de-ultima-hora"],
+    related: ["escape-room-de-navidad", "regalos-de-reyes-para-ninos", "regalo-amigo-invisible-original"],
   },
   {
     slug: "regalo-de-ultima-hora",
@@ -770,6 +868,111 @@ export const SEO_PAGES: SeoPage[] = [
       { q: "¿Hay que registrarse?", a: "No. Puedes probar y comprar sin crear una cuenta." },
     ],
     related: ["regalos-de-navidad-personalizados", "regalo-de-ultima-hora", "regalo-personalizado-con-foto"],
+  },
+  {
+    slug: "escape-room-de-navidad",
+    label: "Escape room de Navidad",
+    title: "Escape room de Navidad para imprimir en familia",
+    description:
+      "Un escape room navideño para imprimir: historia del duende Cascabel, acertijos según la edad, pistas y soluciones. Para Nochebuena o Reyes. Demo gratis.",
+    eyebrow: "Escape room navideño",
+    h1: "Escape room de Navidad para jugar en familia",
+    intro:
+      "El duende Cascabel ha escondido los regalos en un baúl y ha olvidado la palabra que lo abre. Tu familia tendrá que resolver sus acertijos repartidos por la casa. Eliges la edad, la dificultad y la duración, y te llevas un PDF listo para imprimir con historia, retos, pistas y soluciones.",
+    product: "escape",
+    visual: "escape",
+    cta: "Probar el escape navideño gratis",
+    ctaHref: "/crear/escape-room?tema=navidad",
+    sections: [
+      {
+        h2: "Cuándo jugarlo estas fiestas",
+        paragraphs: ["Funciona en cualquier reunión en la que haya un rato tranquilo:"],
+        bullets: [
+          "En la sobremesa de Nochebuena o de Navidad, con primos, tíos y abuelos en el mismo equipo.",
+          "La mañana de Reyes: el último regalo espera dentro del «baúl».",
+          "En Nochevieja, antes de las campanadas, para que los peques aguanten despiertos.",
+          "Una tarde de vacaciones de Navidad en casa o con los amigos del cole.",
+        ],
+      },
+      {
+        h2: "Qué incluye",
+        paragraphs: ["El mismo juego completo que el resto de temáticas, ambientado en Navidad:"],
+        bullets: [
+          "La historia del duende Cascabel para leer en voz alta.",
+          "Entre 4 y 9 acertijos según la edad: sopas de letras con palabras navideñas, cifrados, laberintos, candados y lógica.",
+          "Tarjetas de recompensa con letras que forman la palabra que abre el baúl.",
+          "Dos pistas por acertijo, guía del organizador, soluciones y diploma final.",
+        ],
+      },
+      {
+        h2: "Para todas las edades de la familia",
+        paragraphs: [
+          "Al elegir la edad cambia el tipo de reto: contar figuras y laberintos para 5 a 7 años, cifrados sencillos para 8 a 11, y lógica y series numéricas para jóvenes y adultos. Si juegan pequeños y mayores juntos, elige la edad del más pequeño y que los adultos ayuden con las pistas.",
+        ],
+      },
+      {
+        h2: "Cómo prepararlo en 20 minutos",
+        paragraphs: [
+          "Imprime el PDF, recorta las tarjetas y mete cada acertijo en un sobre. Escóndelos junto al árbol, en el belén, dentro de un calcetín o bajo el plato del turrón. Un baúl o una caja de zapatos con lazo hace de cofre final.",
+        ],
+      },
+    ],
+    faq: [
+      { q: "¿Es un juego distinto al escape room normal?", a: "Usa el mismo generador, con historia, palabras y ambientación de Navidad. Cada partida se crea con tus datos: edad, dificultad, duración y protagonista." },
+      { q: "¿Llega a tiempo para Nochebuena?", a: "Sí. No hay envío: el PDF se descarga justo después del pago, aunque lo compres el mismo día." },
+      { q: "¿Cuánto cuesta?", a: "9,99 € el juego completo, y puedes imprimirlo tantas veces como quieras para tu familia. La demo de 3 acertijos es gratis." },
+    ],
+    related: ["regalos-de-navidad-personalizados", "regalos-de-reyes-para-ninos", "escape-room-para-imprimir"],
+  },
+  {
+    slug: "regalo-para-abuelos-personalizado",
+    label: "Regalo para abuelos",
+    title: "Regalo personalizado para abuelos con fotos",
+    description:
+      "Ideas de regalo personalizado para abuelos: un periódico con la historia de la familia o láminas para colorear con fotos de sus nietos. Pruébalo gratis.",
+    eyebrow: "Para los abuelos",
+    h1: "Un regalo personalizado para los abuelos, hecho con sus nietos",
+    intro:
+      "A los abuelos casi nunca les falta de nada, pero siempre les emociona lo que habla de su familia. Con REGALUMO puedes crear un periódico con su historia o un libro para colorear con fotos de sus nietos, en minutos y sin esperar envíos.",
+    product: "all",
+    visual: "all",
+    cta: "Crear el regalo de los abuelos",
+    sections: [
+      {
+        h2: "Un periódico con la historia de la familia",
+        paragraphs: [
+          "La noticia principal son ellos: cómo se conocieron, la casa del pueblo, las comidas de los domingos. Añade fotos antiguas y actuales, las fechas importantes y mensajes de hijos y nietos. Impreso en A3 y enmarcado, se queda colgado en el salón durante años.",
+        ],
+      },
+      {
+        h2: "Láminas para colorear con sus nietos",
+        paragraphs: [
+          "Convierte fotos de los nietos en láminas para colorear y regálalas con unas pinturas. Es un plan para hacer juntos en la próxima visita, y los dibujos terminados acaban en la nevera.",
+        ],
+      },
+      {
+        h2: "Para qué ocasiones",
+        bullets: [
+          "Navidad y Reyes, cuando toda la familia se reúne.",
+          "Su cumpleaños, sobre todo si es redondo: 70, 80 o 90 años.",
+          "Bodas de oro o de plata.",
+          "El Día de los Abuelos, el 26 de julio.",
+        ],
+        paragraphs: ["Funciona en cualquier celebración familiar:"],
+      },
+      {
+        h2: "Cómo hacerlo entre todos",
+        paragraphs: [
+          "Pide a cada hijo y nieto una frase o un recuerdo por mensaje y añádelos en «Cartas de los lectores». Si los nietos son pequeños, pueden colorear una lámina cada uno y entregarla junto al periódico.",
+        ],
+      },
+    ],
+    faq: [
+      { q: "¿Hace falta que los abuelos usen el móvil?", a: "No. El regalo se imprime en papel, así que pueden disfrutarlo sin pantallas." },
+      { q: "¿Qué fotos antiguas sirven?", a: "Puedes hacer una foto con el móvil a una foto en papel. Mejor con buena luz y sin reflejos." },
+      { q: "¿Cuánto cuesta?", a: "El periódico cuesta 6,99 € y el libro para colorear 7,99 €. El pack con los tres regalos cuesta 19,99 €." },
+    ],
+    related: ["periodico-de-cumpleanos", "regalo-de-aniversario-original", "regalos-de-navidad-personalizados"],
   },
 ];
 

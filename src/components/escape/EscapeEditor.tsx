@@ -17,7 +17,11 @@ const DEFAULT: Input = { age: "ninos", theme: "piratas", players: 4, difficulty:
 
 export function EscapeEditor() {
   const params = useSearchParams();
-  const [input, setInput] = useState<Input>(DEFAULT);
+  const [input, setInput] = useState<Input>(() => {
+    // Las guías pueden enlazar con una temática ya elegida (p. ej. ?tema=navidad).
+    const tema = params.get("tema");
+    return THEME_OPTIONS.some((t) => t.id === tema) ? { ...DEFAULT, theme: tema as string } : DEFAULT;
+  });
   const [demo, setDemo] = useState<Demo | null>(null);
   const [step, setStep] = useState(-1);
   const [answer, setAnswer] = useState("");

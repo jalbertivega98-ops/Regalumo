@@ -2,11 +2,12 @@
 
 ## Qué está hecho
 
-- **17 páginas de aterrizaje con contenido original** (`src/content/seo.ts`), cada una con título, descripción, H1, secciones, preguntas frecuentes, enlaces internos y llamada a la prueba gratuita:
-  - `/escape-room-personalizado`, `/escape-room-para-cumpleanos`, `/escape-room-para-imprimir`
+- **19 páginas de aterrizaje con contenido original** (`src/content/seo.ts`), cada una con título, descripción, H1, secciones, preguntas frecuentes, enlaces internos y llamada a la prueba gratuita:
+  - `/escape-room-personalizado`, `/escape-room-para-cumpleanos`, `/escape-room-para-imprimir`, `/escape-room-de-navidad` (abre el editor con la temática Navidad: `/crear/escape-room?tema=navidad`)
   - `/periodico-personalizado`, `/periodico-de-cumpleanos`, `/regalo-de-aniversario-original`, `/periodico-de-boda`, `/regalo-de-jubilacion-original`
-  - `/regalos-personalizados`, `/regalo-personalizado-con-foto`, `/regalos-de-navidad-personalizados`, `/regalo-de-ultima-hora`, `/regalos-de-reyes-para-ninos`, `/regalo-amigo-invisible-original`
+  - `/regalos-personalizados`, `/regalo-personalizado-con-foto`, `/regalos-de-navidad-personalizados`, `/regalo-de-ultima-hora`, `/regalos-de-reyes-para-ninos`, `/regalo-amigo-invisible-original`, `/regalo-para-abuelos-personalizado`
   - `/foto-para-colorear`, `/laminas-para-colorear-con-foto`, `/libro-para-colorear-personalizado`
+- `/regalos-personalizados` hace de página central: enlaza a las guías por ocasión dentro del texto (campo `links` de cada sección), igual que la de Navidad.
 - La portada y el pie enlazan a todas las guías (sección «Ideas y guías de regalo»), para que Google las encuentre y entienda de qué trata cada una.
 - Cada guía tiene su propia **imagen para compartir** (`/og/<página>`, 1200×630) que se ve al pegar el enlace en WhatsApp, Facebook o X. Los metadatos se generan con `src/lib/seo/meta.ts` para que ninguna página pierda la imagen, el nombre del sitio ni el idioma.
 - Pruebas automáticas del contenido (`tests/unit/seo.test.ts`): títulos y descripciones con longitud adecuada para Google, sin duplicados y enlaces internos válidos.

@@ -37,3 +37,20 @@ describe("páginas para Google", () => {
     expect(HOME_FAQ.length).toBeGreaterThan(0);
   });
 });
+
+describe("enlaces dentro de las guías", () => {
+  it("los enlaces de cada sección apuntan a guías que existen y no a sí mismas", () => {
+    for (const p of SEO_PAGES) {
+      for (const s of p.sections) {
+        for (const l of s.links ?? []) {
+          expect(getSeoPage(l), `${p.slug} → ${l}`).toBeDefined();
+          expect(l).not.toBe(p.slug);
+        }
+      }
+    }
+  });
+
+  it("el botón de una guía con enlace propio lleva a una página de la web", () => {
+    for (const p of SEO_PAGES) if (p.ctaHref) expect(p.ctaHref).toMatch(/^\/crear\//);
+  });
+});
