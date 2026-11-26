@@ -34,6 +34,18 @@ describe("PDF", () => {
     }
   });
 
+  it("escape room: cada acertijo cabe en su página en todas las temáticas y edades", async () => {
+    const { THEME_IDS } = await import("@/lib/escape/themes");
+    for (const theme of THEME_IDS)
+      for (const age of ["peques", "ninos", "jovenes", "adultos"])
+        for (const [duration, difficulty] of [[90, "dificil"], [45, "media"]] as const) {
+          const g = generateGame({ theme, age, duration, difficulty, players: 8, hero: "Maximiliano", team: "Los Exploradores" });
+          const n = g.puzzles.length;
+          // portada, guía, hoja de control, historia, n acertijos, final, recompensas, pistas (2 hojas si n > 7), soluciones, diploma
+          expect(pages(await renderEscapePdf(g)), `${theme}/${age}/${duration}`).toBe(n + 9 + (n > 7 ? 1 : 0));
+        }
+  }, 300_000);
+
   it("periódico: una sola página A3 con fotos, en las tres plantillas y con textos al máximo", async () => {
     const photo = await normalizePhoto(readFileSync("assets/samples/chelsea.png"));
     const photo2 = await normalizePhoto(readFileSync("assets/samples/coffee.png"));

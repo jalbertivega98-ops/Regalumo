@@ -51,7 +51,7 @@ export const SEO_PAGES: SeoPage[] = [
         paragraphs: ["Todo lo necesario para imprimir, recortar y jugar el mismo día:"],
         bullets: [
           "Historia original para leer en voz alta al empezar.",
-          "Entre 4 y 9 acertijos variados: cifrados, laberintos, sopas de letras, adivinanzas, candados numéricos y lógica.",
+          "Entre 4 y 9 acertijos variados: puzle recortable, código de símbolos, cifrados, laberintos, sopas de letras, adivinanzas, candados numéricos y lógica.",
           "Tarjetas de recompensa con letras que forman la palabra final.",
           "Dos pistas por acertijo, en tarjetas para recortar.",
           "Guía del organizador con materiales, preparación paso a paso y consejos de seguridad.",
@@ -899,7 +899,7 @@ export const SEO_PAGES: SeoPage[] = [
         paragraphs: ["El mismo juego completo que el resto de temáticas, ambientado en Navidad:"],
         bullets: [
           "La historia del duende Cascabel para leer en voz alta.",
-          "Entre 4 y 9 acertijos según la edad: sopas de letras con palabras navideñas, cifrados, laberintos, candados y lógica.",
+          "Entre 4 y 9 acertijos según la edad: adivinanzas navideñas, un puzle recortable, código de símbolos, sopas de letras con palabras navideñas, cifrados, laberintos, candados y lógica.",
           "Tarjetas de recompensa con letras que forman la palabra que abre el baúl.",
           "Dos pistas por acertijo, guía del organizador, soluciones y diploma final.",
         ],

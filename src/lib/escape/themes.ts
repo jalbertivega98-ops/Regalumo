@@ -16,6 +16,8 @@ export interface Theme {
   chapters: string[];
   ending: string;
   prize: string;
+  /** Objetos del candado: sustantivos femeninos en plural («¿cuántas quedan?»). */
+  objects: string[];
   /** Nombres para los acertijos de lógica. */
   people: [string, string, string, string];
   colors: string;
@@ -27,7 +29,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Piratas",
     emoji: "🏴‍☠️",
     title: "El tesoro de la isla Brumosa",
-    words: ["ANCLA", "TIMON", "MAPA", "BRUJULA", "LORO", "COFRE", "BARCO", "ISLA", "MONEDA", "VELA", "OLA", "CATALEJO"],
+    words: ["ANCLA", "TIMON", "MAPA", "BRUJULA", "LORO", "COFRE", "BARCO", "ISLA", "MONEDA", "VELA", "OLA", "CATALEJO", "CALAVERA", "BANDERA", "MASTIL", "PARCHE", "ESPADA", "BOTELLA", "GAVIOTA"],
+    objects: ["monedas", "perlas", "botellas", "plumas", "velas", "gaviotas"],
     intro:
       "La vieja capitana Brisa dejó escondido su tesoro antes de retirarse a contar historias en el puerto. Antes de marcharse, repartió sus pistas en sobres sellados y dejó al loro Perejil como guardián. {heroe_frase}Solo una tripulación valiente y unida podrá reunir todas las piezas y descubrir la palabra que abre el cofre.",
     guardian: "el loro Perejil",
@@ -52,7 +55,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Espacio",
     emoji: "🚀",
     title: "Misión Estrella Perdida",
-    words: ["COHETE", "PLANETA", "LUNA", "ESTRELLA", "COMETA", "ORBITA", "GALAXIA", "SATELITE", "ASTRO", "NAVE", "MARTE", "RADAR"],
+    words: ["COHETE", "PLANETA", "LUNA", "ESTRELLA", "COMETA", "ORBITA", "GALAXIA", "SATELITE", "ASTRO", "NAVE", "MARTE", "RADAR", "METEORO", "ASTEROIDE", "CRATER", "CASCO", "ANTENA", "ROBOT", "SONDA"],
+    objects: ["estrellas", "naves", "piedras", "lunas", "antenas", "galletas"],
     intro:
       "La estación orbital Aurora ha perdido el contacto con la Estrella Guía, la luz que ayuda a las naves a volver a casa. El ordenador de a bordo, ZUMO-3, ha cifrado los códigos de reinicio en varios módulos de la nave. {heroe_frase}Vuestro equipo de astronautas debe recuperarlos antes de que se agote el oxígeno de la misión.",
     guardian: "el robot ZUMO-3",
@@ -77,7 +81,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Detectives",
     emoji: "🔎",
     title: "El caso del reloj desaparecido",
-    words: ["LUPA", "HUELLA", "PISTA", "CODIGO", "SOSPECHA", "TESTIGO", "MAPA", "NOTA", "LLAVE", "SOMBRERO", "CAMARA", "SECRETO"],
+    words: ["LUPA", "HUELLA", "PISTA", "CODIGO", "SOSPECHA", "TESTIGO", "MAPA", "NOTA", "LLAVE", "SOMBRERO", "CAMARA", "SECRETO", "COARTADA", "DISFRAZ", "LINTERNA", "DIARIO", "SOBRE", "PUERTA", "PRUEBA", "AGENDA"],
+    objects: ["pistas", "huellas", "lupas", "llaves", "notas", "fotos"],
     intro:
       "El valioso reloj de la familia ha desaparecido justo antes de la gran celebración. Quien se lo llevó no quería hacer daño: ha dejado una cadena de pistas para comprobar si hay buenos detectives en la casa. {heroe_frase}Abrid bien los ojos, porque cualquier detalle puede ser importante.",
     guardian: "el inspector Bigotes",
@@ -102,7 +107,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Magia",
     emoji: "🪄",
     title: "La escuela de los hechizos olvidados",
-    words: ["VARITA", "POCION", "HECHIZO", "BRUJA", "LIBRO", "CALDERO", "ESCOBA", "MAGO", "CRISTAL", "LECHUZA", "CAPA", "RUNA"],
+    words: ["VARITA", "POCION", "HECHIZO", "BRUJA", "LIBRO", "CALDERO", "ESCOBA", "MAGO", "CRISTAL", "LECHUZA", "CAPA", "RUNA", "SOMBRERO", "ESTRELLA", "CONJURO", "DRAGON", "TORRE", "GATO", "VELA", "PERGAMINO"],
+    objects: ["pociones", "varitas", "plumas", "velas", "escobas", "runas"],
     intro:
       "En la escuela de magia de Villabruma, una ráfaga de viento ha desordenado el Gran Libro de Hechizos y sus páginas han volado por todas partes. La directora, la maga Ortiga, necesita aprendices capaces de recuperarlas. {heroe_frase}Cada página encontrada os acerca a la palabra mágica que lo devuelve todo a su sitio.",
     guardian: "la lechuza Ramona",
@@ -127,7 +133,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Selva",
     emoji: "🌿",
     title: "La expedición del templo escondido",
-    words: ["LIANA", "MONO", "TUCAN", "TEMPLO", "RIO", "JAGUAR", "HOJA", "MAPA", "PUENTE", "LIBELULA", "BAMBU", "ROCA"],
+    words: ["LIANA", "MONO", "TUCAN", "TEMPLO", "RIO", "JAGUAR", "HOJA", "MAPA", "PUENTE", "LIBELULA", "BAMBU", "ROCA", "CASCADA", "SERPIENTE", "LORO", "MOSQUITO", "ORQUIDEA", "CANOA", "PALMERA", "BRUJULA"],
+    objects: ["hojas", "ranas", "lianas", "mariposas", "piñas", "plumas"],
     intro:
       "Una expedición de exploradores ha encontrado la entrada de un templo cubierto de lianas. En su puerta hay un mensaje: solo quien supere las pruebas de la selva podrá ver lo que guarda dentro. {heroe_frase}El tucán Pipo os acompañará, pero cuidado: le encanta hablar en acertijos.",
     guardian: "el tucán Pipo",
@@ -152,7 +159,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Misterio en el museo",
     emoji: "🏛️",
     title: "Una noche en el museo",
-    words: ["CUADRO", "ESTATUA", "MOMIA", "FOSIL", "VITRINA", "GUARDIA", "LINTERNA", "MARCO", "ESCULTURA", "JARRON", "DIBUJO", "SALA"],
+    words: ["CUADRO", "ESTATUA", "MOMIA", "FOSIL", "VITRINA", "GUARDIA", "LINTERNA", "MARCO", "ESCULTURA", "JARRON", "DIBUJO", "SALA", "MOSAICO", "VASIJA", "CORONA", "ESPADA", "TAPIZ", "LIENZO", "PINCEL", "RETRATO"],
+    objects: ["monedas", "vasijas", "estatuas", "llaves", "linternas", "joyas"],
     intro:
       "Al cerrar el museo, el guardia nocturno descubre que las obras de arte han cambiado de sitio. Una nota firmada por 'El Artista Misterioso' propone un reto: resolver sus enigmas antes del amanecer para devolver cada pieza a su lugar. {heroe_frase}Linterna en mano, empieza la noche más curiosa del museo.",
     guardian: "el guardia Anselmo",
@@ -177,7 +185,8 @@ export const THEMES: Record<ThemeId, Theme> = {
     name: "Navidad",
     emoji: "🎄",
     title: "La noche de los regalos escondidos",
-    words: ["REGALO", "ESTRELLA", "TRINEO", "RENO", "NIEVE", "ABETO", "CAMPANA", "TURRON", "BOLA", "LAZO", "GUIRNALDA", "CARTA"],
+    words: ["REGALO", "ESTRELLA", "TRINEO", "RENO", "NIEVE", "ABETO", "CAMPANA", "TURRON", "BOLA", "LAZO", "GUIRNALDA", "CARTA", "CHIMENEA", "CALCETIN", "GALLETA", "VELA", "PASTOR", "ANGEL", "MAZAPAN", "CASCABEL", "POLVORON"],
+    objects: ["bolas", "galletas", "campanas", "velas", "estrellas", "castañas"],
     intro:
       "Esta noche los regalos tenían que estar junto al árbol, pero el duende Cascabel, que es muy despistado, los guardó en un baúl para que nadie los viera antes de tiempo… y ha olvidado la palabra que lo abre. Por suerte, fue dejando pistas por toda la casa para acordarse. {heroe_frase}Si resolvéis sus acertijos antes de la cena, los regalos llegarán a tiempo.",
     guardian: "el duende Cascabel",

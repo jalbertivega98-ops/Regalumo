@@ -7,6 +7,7 @@ import { PRODUCTS, formatEur } from "@/lib/products/catalog";
 import { NewspaperShowcase } from "@/components/showcase/NewspaperShowcase";
 import { ColoringShowcase } from "@/components/showcase/ColoringShowcase";
 import { EscapeShowcase } from "@/components/showcase/EscapeShowcase";
+import { EscapePdfPreview } from "@/components/showcase/EscapePdfPreview";
 import { escapeSample } from "@/components/showcase/samples";
 import { ProductCards } from "@/components/ProductCards";
 import { Faq } from "@/components/Faq";
@@ -66,6 +67,12 @@ export default async function SeoLanding({ params }: { params: Promise<{ slug: s
           {page.visual === "all" && <ColoringShowcase eager />}
         </div>
       </section>
+
+      {page.visual === "escape" && (
+        <section className="mx-auto max-w-3xl px-4 pb-12">
+          <EscapePdfPreview />
+        </section>
+      )}
 
       {page.visual === "all" && (
         <section className="mx-auto max-w-7xl px-4 pb-12">

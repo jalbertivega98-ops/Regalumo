@@ -30,7 +30,11 @@ export type Printable =
   | { type: "shapes"; items: { shape: "star" | "circle" | "triangle" | "heart"; x: number; y: number; r: number; rot: number }[]; target: "star" | "circle" | "triangle" | "heart" }
   | { type: "lock"; clues: string[]; digits: number }
   | { type: "sequence"; terms: (number | "?")[] }
-  | { type: "logic"; statements: string[]; question: string };
+  | { type: "logic"; statements: string[]; question: string }
+  /** Puzle recortable: la palabra se imprime partida en piezas desordenadas (algunas giradas). */
+  | { type: "jigsaw"; word: string; rows: number; cols: number; pieces: { r: number; c: number; flip: boolean }[] }
+  /** Cifrado de símbolos: sym = 0..17 (forma = sym % 6, estilo = sym / 6: contorno, relleno, con punto). */
+  | { type: "symbols"; key: { letter: string; sym: number }[]; message: number[] };
 
 export interface Puzzle {
   kind: string;
@@ -109,13 +113,26 @@ interface Ctx {
   theme: (typeof THEMES)[ThemeId];
   usedWords: Set<string>;
   usedRiddles: Set<number>;
+  /** Palabra final: ningún acertijo puede usarla ni algo que la contenga (la destriparía). */
+  finalWord: string;
   hard: number; // 0 fácil, 1 media, 2 difícil
   ageLevel: number; // 0 peques ... 3 adultos
 }
 
+/** ¿Destriparía la palabra final? (la misma palabra, o una que la contiene o está contenida en ella). */
+export function spoils(word: string, finalWord: string) {
+  const w = normalizeAnswer(word).toUpperCase(), f = finalWord.toUpperCase();
+  return !!f && (w.includes(f) || (w.length >= 3 && f.includes(w)));
+}
+
+function themeWords(ctx: Ctx) {
+  return ctx.theme.words.filter((w) => !spoils(w, ctx.finalWord));
+}
+
 function takeWord(ctx: Ctx, maxLen = 9, minLen = 3) {
-  const pool = ctx.theme.words.filter((w) => !ctx.usedWords.has(w) && w.length <= maxLen && w.length >= minLen);
-  const w = ctx.rng.pick(pool.length ? pool : ctx.theme.words.filter((x) => x.length <= maxLen));
+  const all = themeWords(ctx);
+  const pool = all.filter((w) => !ctx.usedWords.has(w) && w.length <= maxLen && w.length >= minLen);
+  const w = ctx.rng.pick(pool.length ? pool : all.filter((x) => x.length <= maxLen && x.length >= Math.min(minLen, 4)));
   ctx.usedWords.add(w);
   return w;
 }
@@ -128,9 +145,15 @@ type Gen = (ctx: Ctx) => Omit<Puzzle, "chapter" | "reward">;
 
 const riddle: Gen = (ctx) => {
   const age = ctx.input.age;
-  const options = RIDDLES.map((r, i) => ({ r, i })).filter((x) => x.r.ages.includes(age) && !ctx.usedRiddles.has(x.i));
-  const { r, i } = ctx.rng.pick(options.length ? options : RIDDLES.map((r, i) => ({ r, i })));
+  const fits = (r: (typeof RIDDLES)[number], i: number) =>
+    r.ages.includes(age) && !ctx.usedRiddles.has(i) && !r.accept.some((a) => spoils(a, ctx.finalWord) || ctx.usedWords.has(a.toUpperCase()));
+  const all = RIDDLES.map((r, i) => ({ r, i }));
+  // Primero las de la temática; si ya se han usado todas, las genéricas.
+  const themed = all.filter((x) => x.r.themes?.includes(ctx.input.theme) && fits(x.r, x.i));
+  const generic = all.filter((x) => !x.r.themes && fits(x.r, x.i));
+  const { r, i } = ctx.rng.pick(themed.length ? themed : generic.length ? generic : all.filter((x) => !x.r.themes));
   ctx.usedRiddles.add(i);
+  for (const a of r.accept) ctx.usedWords.add(a.toUpperCase());
   return {
     kind: "riddle",
     title: "La adivinanza del guardián",
@@ -239,7 +262,7 @@ const sequence: Gen = (ctx) => {
 
 const lock: Gen = (ctx) => {
   const digits = ctx.hard === 2 ? 4 : 3;
-  const objs = ["monedas", "estrellas", "llaves", "velas", "piedras", "botellas", "plumas", "mapas"];
+  const objs = ctx.theme.objects;
   const clues: string[] = [];
   let code = "";
   for (let i = 0; i < digits; i++) {
@@ -292,8 +315,9 @@ const wordsearch: Gen = (ctx) => {
   const size = ctx.ageLevel <= 1 ? 9 : 11;
   const dirs: [number, number][] = ctx.hard === 0 || ctx.ageLevel <= 1 ? [[0, 1], [1, 0]] : [[0, 1], [1, 0], [1, 1], [-1, 1], [0, -1]];
   for (let attempt = 0; attempt < 40; attempt++) {
-    const list = ctx.rng.shuffle(ctx.theme.words.filter((w) => w.length <= size)).slice(0, ctx.ageLevel <= 1 ? 5 : 7);
-    const missing = list.find((w) => !ctx.usedWords.has(w)) ?? list[0];
+    const fresh = themeWords(ctx).filter((w) => w.length <= size && !ctx.usedWords.has(w));
+    const list = ctx.rng.shuffle(fresh.length >= 5 ? fresh : themeWords(ctx).filter((w) => w.length <= size)).slice(0, ctx.ageLevel <= 1 ? 5 : 7);
+    const missing = list[0];
     const grid: string[][] = Array.from({ length: size }, () => Array(size).fill(""));
     let ok = true;
     for (const w of list) {
@@ -320,7 +344,8 @@ const wordsearch: Gen = (ctx) => {
     const filler = ABC.split("").filter((c) => !missing.includes(c));
     for (const row of grid) for (let i = 0; i < size; i++) if (!row[i]) row[i] = ctx.rng.pick(filler);
     if (gridContains(grid, missing)) continue;
-    ctx.usedWords.add(missing);
+    // Todas las palabras de la lista quedan reservadas: si salieran después en otro acertijo, ya estarían a la vista.
+    for (const w of list) ctx.usedWords.add(w);
     return {
       kind: "wordsearch",
       title: "La sopa de letras incompleta",
@@ -478,24 +503,65 @@ const logic: Gen = (ctx) => {
   };
 };
 
-const GENERATORS: Record<string, Gen> = { riddle, anagram, caesar: caesarPuzzle, numbers, mirror, sequence, lock, wordsearch, maze, shapes, logic };
+const jigsaw: Gen = (ctx) => {
+  const w = takeWord(ctx, ctx.ageLevel === 0 ? 5 : 7, 4);
+  const [rows, cols] = [[2, 3], [3, 3], [3, 4], [3, 4]][ctx.ageLevel];
+  const cells = Array.from({ length: rows * cols }, (_, i) => ({ r: Math.floor(i / cols), c: i % cols }));
+  let order = cells;
+  for (let t = 0; t < 10 && order.some((x, i) => x === cells[i]); t++) order = ctx.rng.shuffle(cells);
+  // Desde 12 años, algunas piezas salen giradas (más difícil de montar).
+  const flips = ctx.ageLevel >= 2 && ctx.hard >= 1;
+  const pieces = order.map((x) => ({ ...x, flip: flips && ctx.rng.next() < 0.35 }));
+  return {
+    kind: "jigsaw",
+    title: "El mensaje roto",
+    instructions: `Alguien ha roto el mensaje en ${rows * cols} trozos. Recortad las piezas por la línea de puntos y juntadlas: cuando el puzle esté montado, podréis leer la contraseña.`,
+    printable: { type: "jigsaw", word: w, rows, cols, pieces },
+    answer: w,
+    accept: [normalizeAnswer(w)],
+    hints: ["Empezad por las cuatro esquinas: son las piezas con dos lados de marco.", `La palabra tiene ${w.length} letras y empieza por "${w[0]}".`],
+    solution: `Con el puzle montado se lee ${w}.`,
+  };
+};
+
+const symbols: Gen = (ctx) => {
+  const w = takeWord(ctx, ctx.ageLevel === 0 ? 5 : 8, 4);
+  const letters = [...new Set(w.split(""))];
+  const extra = ctx.rng.shuffle(ABC.split("").filter((c) => !letters.includes(c))).slice(0, ctx.ageLevel <= 1 ? 4 : 8);
+  const syms = ctx.rng.shuffle(Array.from({ length: 18 }, (_, i) => i));
+  const key = [...letters, ...extra].sort().map((letter, i) => ({ letter, sym: syms[i] }));
+  const symOf = (c: string) => key.find((k) => k.letter === c)!.sym;
+  return {
+    kind: "symbols",
+    title: "El código de símbolos",
+    instructions: "Este mensaje está escrito con símbolos secretos. Buscad cada símbolo en la tabla del código y escribid su letra debajo.",
+    printable: { type: "symbols", key, message: w.split("").map(symOf) },
+    answer: w,
+    accept: [normalizeAnswer(w)],
+    hints: ["Fijaos bien: el mismo dibujo puede estar vacío, relleno o con un punto, y cada uno es una letra distinta.", `La palabra tiene ${w.length} letras y empieza por "${w[0]}".`],
+    solution: `Traducido con la tabla, el mensaje dice ${w}.`,
+  };
+};
+
+const GENERATORS: Record<string, Gen> = { jigsaw, symbols, riddle, anagram, caesar: caesarPuzzle, numbers, mirror, sequence, lock, wordsearch, maze, shapes, logic };
 
 /** Orden preferente de tipos según la edad (se toman los N primeros, con variedad). */
 const BY_AGE: Record<AgeId, string[]> = {
-  peques: ["shapes", "riddle", "maze", "mirror", "lock", "anagram", "riddle", "shapes", "maze"],
-  ninos: ["riddle", "numbers", "maze", "anagram", "wordsearch", "lock", "mirror", "sequence", "caesar"],
-  jovenes: ["caesar", "riddle", "wordsearch", "sequence", "maze", "logic", "numbers", "lock", "anagram"],
-  adultos: ["riddle", "caesar", "logic", "wordsearch", "sequence", "maze", "lock", "numbers", "anagram"],
+  peques: ["shapes", "riddle", "jigsaw", "maze", "mirror", "lock", "symbols", "riddle", "anagram"],
+  ninos: ["riddle", "numbers", "jigsaw", "maze", "wordsearch", "symbols", "lock", "anagram", "caesar"],
+  jovenes: ["caesar", "riddle", "jigsaw", "wordsearch", "sequence", "symbols", "maze", "logic", "lock"],
+  adultos: ["riddle", "caesar", "logic", "symbols", "wordsearch", "jigsaw", "sequence", "maze", "lock"],
 };
 
 
-function ctxFor(input: EscapeInput, salt: string): Ctx {
+function ctxFor(input: EscapeInput, salt: string, finalWord = ""): Ctx {
   return {
     rng: makeRng(hash(JSON.stringify(input) + salt)),
     input,
     theme: THEMES[input.theme],
     usedWords: new Set(),
     usedRiddles: new Set(),
+    finalWord,
     hard: { facil: 0, media: 1, dificil: 2 }[input.difficulty],
     ageLevel: { peques: 0, ninos: 1, jovenes: 2, adultos: 3 }[input.age],
   };
@@ -513,10 +579,10 @@ function heroPhrase(input: EscapeInput) {
 export function generateGame(raw: unknown): EscapeGame {
   const input = escapeSchema.parse(raw);
   const theme = THEMES[input.theme];
-  const ctx = ctxFor(input, "full");
   const n = puzzleCount(input);
-  const kinds = BY_AGE[input.age].slice(0, n);
   const finalWord = FINAL_WORDS[input.theme][n];
+  const ctx = ctxFor(input, "full", finalWord);
+  const kinds = BY_AGE[input.age].slice(0, n);
   // Las letras se entregan desordenadas: el reto final es reordenarlas.
   let rewardOrder = finalWord.split("");
   for (let i = 0; i < 10 && rewardOrder.join("") === finalWord; i++) rewardOrder = ctx.rng.shuffle(finalWord.split(""));
