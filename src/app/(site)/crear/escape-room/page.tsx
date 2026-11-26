@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { EscapeEditor } from "@/components/escape/EscapeEditor";
-import { EscapePdfPreview } from "@/components/showcase/EscapePdfPreview";
+import { EscapeSales } from "@/components/showcase/EscapeSales";
+import { getPrices } from "@/lib/settings";
+import { formatEur } from "@/lib/products/catalog";
 
 export const metadata: Metadata = {
   title: "Crea tu escape room personalizado gratis",
@@ -9,13 +11,14 @@ export const metadata: Metadata = {
   alternates: { canonical: "/escape-room-personalizado" },
 };
 
-export default function Page() {
+export const revalidate = 300;
+
+export default async function Page() {
+  const prices = await getPrices();
   return (
     <Suspense fallback={<p className="p-10 text-center">Cargando…</p>}>
       <EscapeEditor />
-      <section className="mx-auto max-w-3xl px-4 pb-16">
-        <EscapePdfPreview />
-      </section>
+      <EscapeSales compact href="#top" price={formatEur(prices.escape)} />
     </Suspense>
   );
 }

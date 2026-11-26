@@ -59,3 +59,53 @@ test("un pedido no se puede ver sin su enlace firmado", async ({ page, request }
   const r2 = await request.get(`/api/orders/${orderId}?k=falso`);
   expect([401, 403, 404]).toContain(r2.status());
 });
+
+test("escape room: panel para jugar desde el móvil tras la compra", async ({ page, request }) => {
+  const { generateGame } = await import("../../src/lib/escape/generator");
+  await page.goto("/crear/escape-room");
+  await page.fill("#hero", "Vera");
+  await page.getByText("Jugar la demo gratis").click();
+  await expect(page.getByText("Reto 1")).toBeVisible();
+  await payAndDownload(page);
+  // Datos del proyecto (con su token de propietario) para conocer las respuestas en la prueba.
+  const playHref = await page.getByText("Jugar desde el móvil").getAttribute("href");
+  expect(playHref).toMatch(/^\/jugar\/[\w-]+\?k=[\w-]{16}$/);
+  const projectId = playHref!.split("/")[2].split("?")[0];
+  const token = await page.evaluate((id) => localStorage.getItem(`rg_tok_${id}`), projectId);
+  const { project } = await (await request.get(`/api/projects/${projectId}`, { headers: { "x-project-token": token! } })).json();
+  const g = generateGame(project.data);
+
+  // Sin la clave correcta no hay juego ni respuestas.
+  const bad = await request.post(`/api/escape/play/${projectId}`, { data: { k: "x".repeat(16), action: "state" } });
+  expect(bad.status()).toBe(403);
+  const state = await (await request.post(`/api/escape/play/${projectId}`, { data: { k: playHref!.split("k=")[1], action: "state" } })).text();
+  for (const p of g.puzzles) expect(state).not.toContain(`"${p.answer}"`);
+  expect(state).not.toContain(g.finalWord);
+
+  await page.goto(playHref!);
+  await expect(page.getByText(g.title)).toBeVisible();
+  await page.getByText("Empezar la cuenta atrás").click();
+  await expect(page.getByText("Sobre 1", { exact: true })).toBeVisible();
+  await page.fill("#play-answer", "nolose");
+  await page.getByRole("button", { name: "Comprobar" }).click();
+  await expect(page.getByText("No es correcto")).toBeVisible();
+  await page.getByText(/Usar una ficha de pista/).click();
+  await expect(page.getByText("Pista 1:")).toBeVisible();
+  for (const [i, p] of g.puzzles.entries()) {
+    await page.fill("#play-answer", p.answer.toLowerCase());
+    await page.getByRole("button", { name: "Comprobar" }).click();
+    await expect(page.getByText("Vuestra letra es").or(page.getByText("Vuestra última letra es"))).toBeVisible();
+    // El progreso sobrevive a recargar la página.
+    if (i === 0) {
+      await page.reload();
+      await expect(page.getByText("1 de " + g.puzzles.length + " sobres resueltos", { exact: false })).toBeVisible();
+    } else await page.getByRole("button", { name: /Ya tenemos el sobre|Ir al reto final/ }).click();
+  }
+  await page.fill("#play-final", [...g.finalWord].reverse().join("") === g.finalWord ? "zzz" : [...g.finalWord].reverse().join(""));
+  await page.locator("form").getByRole("button", { name: /^Abrir/ }).click();
+  await expect(page.getByText("Esa no es la palabra")).toBeVisible();
+  await page.fill("#play-final", g.finalWord.toLowerCase());
+  await page.locator("form").getByRole("button", { name: /^Abrir/ }).click();
+  await expect(page.getByText("¡Lo habéis conseguido!")).toBeVisible();
+  await expect(page.getByText(g.ending)).toBeVisible();
+});

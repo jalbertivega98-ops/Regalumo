@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 export function MobileCta() {
   const pathname = usePathname() || "/";
   const [show, setShow] = useState(false);
-  const hidden = pathname.startsWith("/crear") || pathname.startsWith("/pedido") || pathname.startsWith("/legal") || pathname.startsWith("/proyecto");
+  const hidden = pathname.startsWith("/crear") || pathname.startsWith("/pedido") || pathname.startsWith("/jugar") || pathname.startsWith("/legal") || pathname.startsWith("/proyecto");
 
   useEffect(() => {
     const onScroll = () => {

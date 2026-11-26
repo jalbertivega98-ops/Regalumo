@@ -56,6 +56,7 @@ export const SEO_PAGES: SeoPage[] = [
           "Dos pistas por acertijo, en tarjetas para recortar.",
           "Guía del organizador con materiales, preparación paso a paso y consejos de seguridad.",
           "Hoja de soluciones explicadas y diploma final.",
+          "Panel opcional para jugar con el móvil (se abre con un código QR): cuenta atrás, comprobar respuestas y pistas, sin ver las soluciones.",
         ],
       },
       {

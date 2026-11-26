@@ -66,6 +66,14 @@ const nextConfig: NextConfig = {
         headers: [{ key: "X-Robots-Tag", value: "noindex, nofollow" }],
       },
       {
+        // Panel de juego del escape room: lleva su clave en la URL.
+        source: "/jugar/:path*",
+        headers: [
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
+          { key: "Referrer-Policy", value: "no-referrer" },
+        ],
+      },
+      {
         // "Mis pedidos" lleva el enlace mágico en la URL: ni indexar ni enviarlo como referer.
         source: "/mis-pedidos",
         headers: [

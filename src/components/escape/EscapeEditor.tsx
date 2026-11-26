@@ -198,6 +198,8 @@ export function EscapeEditor() {
             <li>✓ Tarjetas de recompensa con letras que forman la palabra final ({n} letras).</li>
             <li>✓ {n * 2} tarjetas de pistas y hoja de soluciones explicadas.</li>
             <li>✓ Reto final y diploma para {input.players} {input.players === 1 ? "participante" : "participantes"}.</li>
+            <li>✓ Etiquetas numeradas para los sobres e invitaciones para los jugadores.</li>
+            <li>✓ Código QR para jugar con el móvil: cuenta atrás, respuestas y pistas (opcional).</li>
             <li>✓ PDF A4 listo para imprimir en casa.</li>
           </ul>
           <p className="hint mt-3">Los acertijos se generan con plantillas propias revisadas y se comprueban automáticamente para que siempre tengan solución.</p>

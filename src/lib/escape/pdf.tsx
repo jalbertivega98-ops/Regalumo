@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, G, Page, Path, Polygon, Rect, Svg, Circle, Line, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import QRCode from "qrcode";
 import { registerFonts } from "../pdf/fonts";
 import { AGES, DIFFICULTIES, type EscapeGame, type Printable } from "./generator";
 import { PALETTES, type EscapePalette, type Motif } from "./style";
@@ -391,11 +392,24 @@ function Cards({ items, cols = 3, height = 150, c }: { items: React.ReactNode[];
   );
 }
 
-export async function renderEscapePdf(g: EscapeGame) {
-  registerFonts();
-  return renderToBuffer(
-    <EscapeDoc g={g} c={PALETTES[g.input.theme]} />,
+/** Código QR vectorial (un solo trazado) para el panel de juego. */
+function Qr({ url, size, color }: { url: string; size: number; color: string }) {
+  const { modules } = QRCode.create(url, { errorCorrectionLevel: "M" });
+  const n = modules.size, q = 2; // margen de 2 módulos
+  let d = "";
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (modules.data[y * n + x]) d += `M${x + q} ${y + q}h1v1h-1z`;
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${n + 2 * q} ${n + 2 * q}`}>
+      <Rect x={0} y={0} width={n + 2 * q} height={n + 2 * q} fill="#FFFFFF" />
+      <Path d={d} fill={color} />
+    </Svg>
   );
+}
+
+/** playUrl: enlace al panel de juego en el móvil (solo en los PDF de pedidos pagados). */
+export async function renderEscapePdf(g: EscapeGame, opts: { playUrl?: string } = {}) {
+  registerFonts();
+  return renderToBuffer(<EscapeDoc g={g} c={PALETTES[g.input.theme]} playUrl={opts.playUrl} />);
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -404,7 +418,7 @@ const KIND_LABEL: Record<string, string> = {
   logic: "Lógica", jigsaw: "Puzle recortable", symbols: "Código de símbolos",
 };
 
-function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
+function EscapeDoc({ g, c, playUrl }: { g: EscapeGame; playUrl?: string } & C) {
   const s = styles(c);
   const n = g.puzzles.length;
   const { input } = g;
@@ -425,7 +439,7 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
               </Text>
             </View>
             <View>
-              <Text style={{ color: "#FFFFFF", fontSize: 11 }}>Contenido: guía y hoja de control del organizador, historia, {n} acertijos, reto final, tarjetas de recompensa y de pistas, soluciones y diploma.</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 11 }}>Contenido: guía y hoja de control del organizador, historia, {n} acertijos, reto final, tarjetas de recompensa y de pistas, etiquetas para los sobres, invitaciones, soluciones y diploma.</Text>
               <Text style={{ color: "#FFFFFF", opacity: 0.6, fontSize: 9, marginTop: 8 }}>Creado con REGALUMO · Uso privado y familiar</Text>
             </View>
           </View>
@@ -448,7 +462,7 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
         <Bullet c={c}>Una caja, bolsa o cajón que hará de {g.prize}, con un pequeño premio o sorpresa dentro.</Bullet>
         {g.puzzles.some((p) => p.kind === "lock") ? <Bullet c={c}>Opcional: un candado de combinación para la caja de un acertijo numérico.</Bullet> : null}
         <Text style={s.h2}>Preparación (20-30 minutos)</Text>
-        <Bullet c={c}>1. Imprime todo el documento. Recorta las tarjetas de recompensa y de pistas.{hasJigsaw ? " Las piezas del puzle las recorta el equipo durante el juego." : ""}</Bullet>
+        <Bullet c={c}>1. Imprime todo. Recorta las tarjetas, las etiquetas de los sobres y, si las usas, las invitaciones.{hasJigsaw ? " Las piezas del puzle las recorta el equipo durante el juego." : ""}</Bullet>
         <Bullet c={c}>2. Mete cada acertijo en su sobre numerado (sobre 1 = acertijo 1...). El sobre {n + 1} lleva la hoja del reto final.</Bullet>
         <Bullet c={c}>3. Esconde los sobres 2 a {n + 1} en lugares seguros de la casa o el jardín. Apunta cada escondite en la hoja de control y en la tarjeta de recompensa del acertijo anterior.</Bullet>
         <Bullet c={c}>4. Prepara {g.prize} con el premio y guárdala hasta el final.</Bullet>
@@ -493,6 +507,14 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
           <Text style={{ marginTop: 10 }}>{cap(g.prize)} está en: ____________________________________________</Text>
           <Text style={{ marginTop: 10 }}>Fichas de pista para el equipo: {g.hintTokens}   ·   Hora de inicio: ________   ·   Hora de fin: ________</Text>
         </View>
+        {playUrl ? (
+          <View style={{ marginTop: 14, padding: 12, backgroundColor: c.soft, borderRadius: 8 }}>
+            <Text style={{ fontWeight: 800, color: c.accent }}>Opcional: jugar con el móvil</Text>
+            <Text style={{ marginTop: 4 }}>
+              El equipo escanea el código QR de la página de la historia. El móvil lleva la cuenta atrás, comprueba las respuestas, gasta las fichas de pista y guarda las letras. Las respuestas no se ven en el móvil. Tú sigues entregando las tarjetas con los escondites.
+            </Text>
+          </View>
+        ) : null}
         <Footer c={c} title={g.title} />
       </Page>
 
@@ -505,6 +527,16 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
         <Text style={{ fontFamily: "Fraunces", fontSize: 16, lineHeight: 1.6, marginTop: 14 }}>
           Tenéis {input.duration} minutos. Cada reto superado os dará una letra. ¡Que empiece la aventura!
         </Text>
+        {playUrl ? (
+          <View wrap={false} style={{ marginTop: 30, flexDirection: "row", alignItems: "center", padding: 14, borderWidth: 1.5, borderColor: c.accent, borderRadius: 10, backgroundColor: c.soft }}>
+            <Qr url={playUrl} size={110} color={c.ink} />
+            <View style={{ flex: 1, marginLeft: 16 }}>
+              <Text style={{ fontWeight: 800, color: c.accent, fontSize: 13 }}>¿Jugáis con el móvil?</Text>
+              <Text style={{ fontSize: 11, marginTop: 4 }}>Escanead este código: tendréis la cuenta atrás, podréis comprobar vuestras respuestas, gastar fichas de pista y guardar las letras que consigáis.</Text>
+              <Text style={{ fontSize: 7.5, color: c.muted, marginTop: 6 }}>{playUrl}</Text>
+            </View>
+          </View>
+        ) : null}
         <Footer c={c} title={g.title} />
       </Page>
 
@@ -572,6 +604,57 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
           height={170}
         />
         <Footer c={c} title={g.title} />
+      </Page>
+
+      {/* Etiquetas para los sobres */}
+      <Page size="A4" style={s.page}>
+        <MotifBand c={c} />
+        <Text style={s.h1}>Etiquetas para los sobres</Text>
+        <Text style={{ ...s.small, marginBottom: 10 }}>Recórtalas y pega cada una en su sobre. Así el equipo sabe qué sobre ha encontrado y en qué orden van.</Text>
+        <Cards
+          c={c}
+          cols={2}
+          height={Math.min(150, Math.floor(600 / Math.ceil((n + 1) / 2)))}
+          items={Array.from({ length: n + 1 }, (_, i) => (
+            <View key={i} style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: i === n ? c.cover : c.soft, borderRadius: 4 }}>
+              <Svg width={22} height={22} viewBox="0 0 22 22">
+                <MotifShape kind={c.motif} x={11} y={11} r={9} color={i === n ? c.coverAccent : c.accent2} />
+              </Svg>
+              <View style={{ marginTop: 4 }}>
+                <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 28, lineHeight: 1.1, color: i === n ? "#FFFFFF" : c.accent, textAlign: "center" }}>{i === n ? "RETO FINAL" : `SOBRE ${i + 1}`}</Text>
+              </View>
+              <View style={{ marginTop: 4 }}>
+                <Text style={{ fontSize: 9, lineHeight: 1.2, color: i === n ? "#FFFFFF" : c.muted, textAlign: "center" }}>{g.themeName} · No abrir hasta encontrarlo</Text>
+              </View>
+            </View>
+          ))}
+        />
+        <Footer c={c} title={g.title} />
+      </Page>
+
+      {/* Invitaciones */}
+      <Page size="A4" style={{ ...s.page, padding: 30, paddingTop: 30 }}>
+        {[0, 1].map((k) => (
+          <View key={k} style={{ flex: 1, marginBottom: k === 0 ? 14 : 0, borderWidth: 1, borderStyle: "dashed", borderColor: c.muted, borderRadius: 10, overflow: "hidden" }}>
+            <View style={{ flex: 1, backgroundColor: c.cover, padding: 30, position: "relative", justifyContent: "center" }}>
+              <Scatter c={c} w={535} h={380} color={c.coverAccent} count={16} seed={21 + k} rMin={6} rMax={14} filled={false} avoid={[[24, 30, 487, 320]]} />
+              <Text style={{ color: c.coverAccent, fontWeight: 800, letterSpacing: 3, fontSize: 10 }}>INVITACIÓN · ESCAPE ROOM · {g.themeName.toUpperCase()}</Text>
+              <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 32, color: "#FFFFFF", marginTop: 10, lineHeight: 1.15 }}>¡Te necesitamos para una misión!</Text>
+              <Text style={{ color: "#FFFFFF", fontSize: 13, marginTop: 10, lineHeight: 1.45 }}>
+                {g.title}. {cap(g.guardian)} ha preparado {n} enigmas y solo un buen equipo podrá abrir {g.prize}.
+              </Text>
+              <View style={{ marginTop: 16, backgroundColor: "#FFFFFF", borderRadius: 8, padding: 14 }}>
+                {["Para:", "Día y hora:", "Lugar:"].map((l) => (
+                  <View key={l} style={{ flexDirection: "row", alignItems: "flex-end", marginBottom: 10 }}>
+                    <Text style={{ width: 76, fontWeight: 800, color: c.accent, fontSize: 12 }}>{l}</Text>
+                    <View style={{ flex: 1, borderBottomWidth: 1, borderColor: c.muted, height: 18 }} />
+                  </View>
+                ))}
+                <Text style={{ fontSize: 10, color: c.muted, marginTop: 8 }}>Trae ganas de pensar, ojos de detective y espíritu de equipo. Duración: unos {input.duration} minutos.</Text>
+              </View>
+            </View>
+          </View>
+        ))}
       </Page>
 
       {/* Tarjetas de pistas */}

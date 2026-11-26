@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { api, eur, saveOrderKey, savePackCredit } from "@/lib/client";
 
-type Item = { product: string; name: string; editorPath: string; projectId: string | null; ready: boolean; downloadUrl: string | null };
+type Item = { product: string; name: string; editorPath: string; projectId: string | null; ready: boolean; downloadUrl: string | null; playUrl?: string | null };
 type OrderDto = { id: string; sku: string; status: string; amountCents: number; expired: boolean; provider: string; items: Item[] };
 
 function CopyLink() {
@@ -92,10 +92,13 @@ export function OrderStatus({ id, k, emails = false, contact }: { id: string; k:
         <div key={it.product} className="card flex flex-wrap items-center justify-between gap-3 p-5">
           <div>
             <p className="font-bold text-lg">{it.name}</p>
-            <p className="hint">{it.ready ? "PDF de alta calidad, sin marca de agua" : "Incluido en tu pack: créalo cuando quieras"}</p>
+            <p className="hint">{it.ready ? (it.playUrl ? "PDF de alta calidad, sin marca de agua, y panel para jugar con el móvil" : "PDF de alta calidad, sin marca de agua") : "Incluido en tu pack: créalo cuando quieras"}</p>
           </div>
-          {it.downloadUrl ? (
-            <a className="btn btn-primary" href={it.downloadUrl}>Descargar PDF</a>
+          {it.downloadUrl || it.playUrl ? (
+            <div className="flex flex-wrap gap-2">
+              {it.downloadUrl && <a className="btn btn-primary" href={it.downloadUrl}>Descargar PDF</a>}
+              {it.playUrl && <a className="btn btn-ghost" href={it.playUrl}>📱 Jugar desde el móvil</a>}
+            </div>
           ) : order.expired ? (
             <span className="hint">Enlace caducado</span>
           ) : (
