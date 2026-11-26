@@ -42,7 +42,10 @@ describe("PDF", () => {
           const g = generateGame({ theme, age, duration, difficulty, players: 8, hero: "Maximiliano", team: "Los Exploradores" });
           const n = g.puzzles.length;
           // portada, guía, hoja de control, historia, n acertijos, final, recompensas, pistas (2 hojas si n > 7), soluciones, diploma
-          expect(pages(await renderEscapePdf(g)), `${theme}/${age}/${duration}`).toBe(n + 9 + (n > 7 ? 1 : 0));
+          const expected = n + 9 + (n > 7 ? 1 : 0);
+          expect(pages(await renderEscapePdf(g)), `${theme}/${age}/${duration}`).toBe(expected);
+          // Con el código QR del panel de juego (PDF de un pedido pagado) tampoco se desborda nada.
+          expect(pages(await renderEscapePdf(g, { playUrl: "https://regalumo.es/jugar/AbCdEfGhIjKl?k=AbCdEfGhIjKlMnOp" })), `${theme}/${age}/${duration} QR`).toBe(expected);
         }
   }, 300_000);
 

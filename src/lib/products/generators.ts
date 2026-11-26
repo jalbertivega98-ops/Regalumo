@@ -6,6 +6,7 @@ import { THEMES as PAPER_THEMES } from "../newspaper/theme";
 import { renderNewspaperPdf } from "../newspaper/pdf";
 import { generateGame } from "../escape/generator";
 import { renderEscapePdf } from "../escape/pdf";
+import { playUrl } from "../escape/play";
 import { coloringSchema } from "../coloring/model";
 import { toLineArt } from "../coloring/lineart";
 import { renderColoringPdf } from "../coloring/pdf";
@@ -38,7 +39,7 @@ export const FINAL: Record<ProductId, (p: Project) => Promise<{ data: Buffer; fi
   },
   async escape(p) {
     const g = generateGame(p.data);
-    return { data: await renderEscapePdf(g), filename: `escape-room-${slug(g.title)}.pdf` };
+    return { data: await renderEscapePdf(g, { playUrl: playUrl(p.id) }), filename: `escape-room-${slug(g.title)}.pdf` };
   },
   async coloring(p) {
     const d = coloringSchema.parse(p.data);

@@ -3,6 +3,7 @@ import { checkOrderToken, downloadExpired, orderToken, paymentsMode, type Order 
 import { getStore } from "@/lib/store";
 import { HttpError, type Project } from "@/lib/projects";
 import { PRODUCTS } from "@/lib/products/catalog";
+import { playUrl } from "@/lib/escape/play";
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -23,6 +24,8 @@ export const GET = handle(async (req: Request, { params }: Ctx) => {
         projectId: it.projectId,
         ready: order.status === "paid" && !!p && p.status === "paid",
         downloadUrl: order.status === "paid" && p && !expired ? `/api/download/${order.id}/${p.id}?k=${encodeURIComponent(orderToken(order.id))}` : null,
+        // El panel de juego no caduca con la descarga: el juego puede jugarse más adelante.
+        playUrl: order.status === "paid" && p && p.status === "paid" && it.product === "escape" ? playUrl(p.id).replace(/^https?:\/\/[^/]+/, "") : null,
       };
     }),
   );

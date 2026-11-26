@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, G, Page, Path, Polygon, Rect, Svg, Circle, Line, Text, View, renderToBuffer } from "@react-pdf/renderer";
+import QRCode from "qrcode";
 import { registerFonts } from "../pdf/fonts";
 import { AGES, DIFFICULTIES, type EscapeGame, type Printable } from "./generator";
 import { PALETTES, type EscapePalette, type Motif } from "./style";
@@ -391,11 +392,24 @@ function Cards({ items, cols = 3, height = 150, c }: { items: React.ReactNode[];
   );
 }
 
-export async function renderEscapePdf(g: EscapeGame) {
-  registerFonts();
-  return renderToBuffer(
-    <EscapeDoc g={g} c={PALETTES[g.input.theme]} />,
+/** Código QR vectorial (un solo trazado) para el panel de juego. */
+function Qr({ url, size, color }: { url: string; size: number; color: string }) {
+  const { modules } = QRCode.create(url, { errorCorrectionLevel: "M" });
+  const n = modules.size, q = 2; // margen de 2 módulos
+  let d = "";
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) if (modules.data[y * n + x]) d += `M${x + q} ${y + q}h1v1h-1z`;
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${n + 2 * q} ${n + 2 * q}`}>
+      <Rect x={0} y={0} width={n + 2 * q} height={n + 2 * q} fill="#FFFFFF" />
+      <Path d={d} fill={color} />
+    </Svg>
   );
+}
+
+/** playUrl: enlace al panel de juego en el móvil (solo en los PDF de pedidos pagados). */
+export async function renderEscapePdf(g: EscapeGame, opts: { playUrl?: string } = {}) {
+  registerFonts();
+  return renderToBuffer(<EscapeDoc g={g} c={PALETTES[g.input.theme]} playUrl={opts.playUrl} />);
 }
 
 const KIND_LABEL: Record<string, string> = {
@@ -404,7 +418,7 @@ const KIND_LABEL: Record<string, string> = {
   logic: "Lógica", jigsaw: "Puzle recortable", symbols: "Código de símbolos",
 };
 
-function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
+function EscapeDoc({ g, c, playUrl }: { g: EscapeGame; playUrl?: string } & C) {
   const s = styles(c);
   const n = g.puzzles.length;
   const { input } = g;
@@ -493,6 +507,14 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
           <Text style={{ marginTop: 10 }}>{cap(g.prize)} está en: ____________________________________________</Text>
           <Text style={{ marginTop: 10 }}>Fichas de pista para el equipo: {g.hintTokens}   ·   Hora de inicio: ________   ·   Hora de fin: ________</Text>
         </View>
+        {playUrl ? (
+          <View style={{ marginTop: 14, padding: 12, backgroundColor: c.soft, borderRadius: 8 }}>
+            <Text style={{ fontWeight: 800, color: c.accent }}>Opcional: jugar con el móvil</Text>
+            <Text style={{ marginTop: 4 }}>
+              El equipo escanea el código QR de la página de la historia. El móvil lleva la cuenta atrás, comprueba las respuestas, gasta las fichas de pista y guarda las letras. Las respuestas no se ven en el móvil. Tú sigues entregando las tarjetas con los escondites.
+            </Text>
+          </View>
+        ) : null}
         <Footer c={c} title={g.title} />
       </Page>
 
@@ -505,6 +527,16 @@ function EscapeDoc({ g, c }: { g: EscapeGame } & C) {
         <Text style={{ fontFamily: "Fraunces", fontSize: 16, lineHeight: 1.6, marginTop: 14 }}>
           Tenéis {input.duration} minutos. Cada reto superado os dará una letra. ¡Que empiece la aventura!
         </Text>
+        {playUrl ? (
+          <View wrap={false} style={{ marginTop: 30, flexDirection: "row", alignItems: "center", padding: 14, borderWidth: 1.5, borderColor: c.accent, borderRadius: 10, backgroundColor: c.soft }}>
+            <Qr url={playUrl} size={110} color={c.ink} />
+            <View style={{ flex: 1, marginLeft: 16 }}>
+              <Text style={{ fontWeight: 800, color: c.accent, fontSize: 13 }}>¿Jugáis con el móvil?</Text>
+              <Text style={{ fontSize: 11, marginTop: 4 }}>Escanead este código: tendréis la cuenta atrás, podréis comprobar vuestras respuestas, gastar fichas de pista y guardar las letras que consigáis.</Text>
+              <Text style={{ fontSize: 7.5, color: c.muted, marginTop: 6 }}>{playUrl}</Text>
+            </View>
+          </View>
+        ) : null}
         <Footer c={c} title={g.title} />
       </Page>
 
