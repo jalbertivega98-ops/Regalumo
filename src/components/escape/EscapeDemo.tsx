@@ -66,7 +66,7 @@ function SlidePuzzle({ s, c, done, onSolved }: { s: Slide; c: EscapePalette; don
             aria-label={`Pieza en la posición ${i + 1}${sel === i ? " (seleccionada)" : ""}`}
             aria-pressed={sel === i}
             disabled={solved}
-            className={`relative aspect-square overflow-hidden rounded-md transition ${sel === i ? "z-10 scale-95 ring-4 ring-coral" : ""}`}
+            className={`relative aspect-square overflow-hidden transition ${solved ? "" : "rounded-md"} ${sel === i ? "z-10 scale-95 ring-4 ring-coral" : ""}`}
           >
             <svg viewBox={`${(piece % k) * size} ${Math.floor(piece / k) * size} ${size} ${size}`} className="block h-full w-full" aria-hidden>
               <SlideArt s={s} c={c} />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { generateDemo, publicDemo } from "@/lib/escape/demo";
-import { caesar, checkAnswer, generateGame, gridContains, puzzleCount, solveMaze, spoils, AGES, DURATIONS, type Printable } from "@/lib/escape/generator";
+import { caesar, checkAnswer, generateGame, rotateCell, gridContains, puzzleCount, solveMaze, spoils, AGES, DURATIONS, type Printable } from "@/lib/escape/generator";
 import { FINAL_WORDS, THEME_IDS, THEMES } from "@/lib/escape/themes";
 import { RIDDLES } from "@/lib/escape/riddles";
 import { normalizeAnswer } from "@/lib/security/text";
@@ -28,6 +28,19 @@ function solveFromPrintable(p: Printable, kind: string): string | null {
       return p.message.map((sym) => p.key.find((k) => k.sym === sym)!.letter).join("");
     case "jigsaw":
       return p.word;
+    case "grille": {
+      // Se coloca la plantilla impresa (girada) y se gira hacia atrás hasta que la estrella vuelve a su esquina.
+      const printed = p.holes.map((h) => rotateCell(h, p.size, p.rot));
+      const back = printed.map((h) => rotateCell(h, p.size, 4 - p.rot)).sort((a, b) => a - b);
+      return back.map((h) => p.grid[h]).join("");
+    }
+    case "wheel": {
+      // Disco pequeño con su A bajo «key»: cada letra del grande tiene debajo la que está «key» posiciones antes.
+      const k = p.key.charCodeAt(0) - 65;
+      return p.encoded.split("").map((ch) => String.fromCharCode(((ch.charCodeAt(0) - 65 - k + 26) % 26) + 65)).join("");
+    }
+    case "hunt":
+      return p.parts.join("");
     case "sequence":
       return null;
     default:
@@ -66,6 +79,15 @@ describe("generador de escape room", () => {
           expect(new Set(syms).size).toBe(syms.length); // cada símbolo es una sola letra
           expect(syms.every((x) => x >= 0 && x < 18)).toBe(true);
         }
+        if (p.printable.type === "hunt") {
+          expect(p.printable.parts).toHaveLength(3);
+          expect(p.printable.parts.every((x) => x.length > 0)).toBe(true);
+          expect(new Set(p.printable.spots).size).toBe(3);
+        }
+        if (p.printable.type === "grille") {
+          expect(new Set(p.printable.holes).size).toBe(p.answer.length);
+          if (input.age === "peques" || input.age === "ninos") expect(p.printable.rot).toBe(0);
+        }
         if (p.printable.type === "jigsaw") {
           const { rows, cols, pieces } = p.printable;
           expect(new Set(pieces.map((x) => `${x.r},${x.c}`)).size).toBe(rows * cols);
@@ -80,11 +102,12 @@ describe("generador de escape room", () => {
 
   it("usa adivinanzas y objetos de la temática", () => {
     for (const theme of THEME_IDS) {
-      const g = generateGame({ theme, age: "ninos", duration: 60 });
+      const g = generateGame({ theme, age: "ninos", duration: 90 });
       const r = g.puzzles.find((p) => p.kind === "riddle")!;
       const themed = RIDDLES.filter((x) => x.themes?.includes(theme)).map((x) => x.answer.toUpperCase());
       expect(themed, theme).toContain(r.answer);
-      const lock = g.puzzles.find((p) => p.printable.type === "lock");
+      const lock = generateGame({ theme, age: "peques", duration: 90 }).puzzles.find((p) => p.printable.type === "lock");
+      expect(lock).toBeDefined();
       if (lock?.printable.type === "lock") for (const cl of lock.printable.clues) expect(THEMES[theme].objects.some((o) => cl.includes(o))).toBe(true);
     }
   });

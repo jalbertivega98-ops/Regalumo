@@ -2,7 +2,7 @@ import React from "react";
 import { Document, G, Page, Path, Polygon, Rect, Svg, Circle, Line, Text, View, renderToBuffer } from "@react-pdf/renderer";
 import QRCode from "qrcode";
 import { registerFonts } from "../pdf/fonts";
-import { AGES, DIFFICULTIES, type EscapeGame, type Printable } from "./generator";
+import { AGES, DIFFICULTIES, rotateCell, type EscapeGame, type Printable } from "./generator";
 import { PALETTES, type EscapePalette, type Motif } from "./style";
 
 /* Los colores de la temática se pasan como prop «c» (en las rutas de Next no hay contexto de React en el servidor). */
@@ -199,6 +199,66 @@ function JigsawArt({ word, W, H, c }: { word: string; W: number; H: number } & C
   );
 }
 
+/** Estrella de referencia para colocar la plantilla de la rejilla. */
+function StarMark({ c, size = 16 }: { size?: number } & C) {
+  const r = size / 2, ri = r * 0.45;
+  const pts = Array.from({ length: 10 }, (_, i) => {
+    const a = (Math.PI / 5) * i - Math.PI / 2, rr = i % 2 ? ri : r;
+    return `${r + rr * Math.cos(a)},${r + rr * Math.sin(a)}`;
+  }).join(" ");
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Polygon points={pts} fill={c.accent} />
+    </Svg>
+  );
+}
+
+/** Cuadrícula de la rejilla: letras (tabla) o ventanas grises (plantilla). La estrella va en la esquina «corner» (0 arriba-izq., 1 arriba-der., 2 abajo-der., 3 abajo-izq.). */
+function GrilleGrid({ n, cell, letters, holes, corner, cut, c }: { n: number; cell: number; letters?: string[]; holes?: Set<number>; corner: number; cut?: boolean } & C) {
+  const o = -cell * 0.42;
+  const pos = [{ left: o, top: o }, { right: o, top: o }, { right: o, bottom: o }, { left: o, bottom: o }][corner];
+  return (
+    <View style={{ padding: cut ? 14 : 0, borderWidth: cut ? 1 : 0, borderStyle: "dashed", borderColor: c.muted }}>
+      <View style={{ width: n * cell + 2, flexDirection: "row", flexWrap: "wrap", borderWidth: 1, borderColor: c.ink, position: "relative" }}>
+        {Array.from({ length: n * n }, (_, i) => (
+          <View key={i} style={{ width: cell, height: cell, borderRightWidth: (i + 1) % n ? 0.8 : 0, borderBottomWidth: i < n * (n - 1) ? 0.8 : 0, borderColor: c.ink, backgroundColor: holes?.has(i) ? "#BDBDBD" : "#FFFFFF", alignItems: "center", justifyContent: "center" }}>
+            {letters ? <Text style={{ fontSize: cell * 0.5, fontWeight: 800 }}>{letters[i]}</Text> : null}
+          </View>
+        ))}
+        <View style={{ position: "absolute", ...pos }}>
+          <StarMark c={c} size={cell * 0.38} />
+        </View>
+      </View>
+    </View>
+  );
+}
+
+const ABC26 = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+/** Disco del descifrador. outer: disco grande (anillo exterior); si no, el pequeño que se recorta. */
+function WheelDisc({ outer, c }: { outer: boolean } & C) {
+  const R = outer ? 120 : 86, rText = outer ? 106 : 72, rIn = outer ? 92 : 58, size = R * 2 + 4, o = R + 2;
+  return (
+    <Svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+      <Circle cx={o} cy={o} r={R} fill={outer ? c.soft : "#FFFFFF"} stroke={c.ink} strokeWidth={outer ? 1.4 : 1} strokeDasharray={outer ? undefined : "4 3"} />
+      <Circle cx={o} cy={o} r={rIn} fill={outer ? "#FFFFFF" : c.soft} stroke={c.ink} strokeWidth={0.8} />
+      {ABC26.split("").map((ch, i) => {
+        const a = (i / 26) * Math.PI * 2 - Math.PI / 2, a2 = a + Math.PI / 26;
+        return (
+          <G key={ch}>
+            <Line x1={o + Math.cos(a2) * rIn} y1={o + Math.sin(a2) * rIn} x2={o + Math.cos(a2) * (outer ? R : R - 2)} y2={o + Math.sin(a2) * (outer ? R : R - 2)} stroke={c.ink} strokeWidth={0.5} />
+            <Text x={o + Math.cos(a) * rText} y={o + Math.sin(a) * rText + 4} textAnchor="middle" style={{ fontSize: outer ? 12 : 10.5, fontWeight: 800 }} fill={!outer && ch === "A" ? c.accent : c.ink}>
+              {ch}
+            </Text>
+          </G>
+        );
+      })}
+      {!outer ? <Polygon points={`${o},${o - rIn + 4} ${o - 5},${o - rIn + 14} ${o + 5},${o - rIn + 14}`} fill={c.accent} /> : null}
+      <Circle cx={o} cy={o} r={2.5} fill={c.ink} />
+    </Svg>
+  );
+}
+
 export function PrintableView({ p, c }: { p: Printable } & C) {
   const s = styles(c);
   switch (p.type) {
@@ -356,6 +416,74 @@ export function PrintableView({ p, c }: { p: Printable } & C) {
           </View>
         </View>
       );
+    case "grille": {
+      const cell = p.size === 5 ? 34 : 30;
+      const corner = (((p.rot % 4) + 4) % 4);
+      const holes = new Set(p.holes.map((h) => rotateCell(h, p.size, p.rot)));
+      return (
+        <View style={{ marginTop: 14, flexDirection: "row", justifyContent: "space-around", alignItems: "flex-start" }}>
+          <View style={{ alignItems: "center" }}>
+            <Text style={{ fontSize: 9, fontWeight: 800, color: c.accent, letterSpacing: 1.5, marginBottom: 6 }}>TABLA DE LETRAS</Text>
+            <GrilleGrid c={c} n={p.size} cell={cell} letters={p.grid} corner={0} />
+          </View>
+          <View style={{ alignItems: "center" }}>
+            <Text style={{ fontSize: 9, fontWeight: 800, color: c.accent, letterSpacing: 1.5, marginBottom: 6 }}>PLANTILLA PARA RECORTAR</Text>
+            <GrilleGrid c={c} n={p.size} cell={cell} holes={holes} corner={corner} cut />
+            <Text style={{ ...s.small, marginTop: 4 }}>Recortad también los cuadros grises.</Text>
+          </View>
+        </View>
+      );
+    }
+    case "wheel":
+      return (
+        <View style={{ marginTop: 10 }}>
+          <View style={{ padding: 14, backgroundColor: c.soft, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: c.accent }}>
+            <Text style={{ fontSize: 30, fontWeight: 800, textAlign: "center", letterSpacing: 7 }}>{p.encoded}</Text>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-around", alignItems: "center", marginTop: 12 }}>
+            <View style={{ alignItems: "center" }}>
+              <WheelDisc c={c} outer />
+              <Text style={{ ...s.small, marginTop: 2 }}>Disco grande</Text>
+            </View>
+            <View style={{ alignItems: "center" }}>
+              <WheelDisc c={c} outer={false} />
+              <Text style={{ ...s.small, marginTop: 2 }}>Disco pequeño: recortadlo por la línea de puntos</Text>
+            </View>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 14 }}>
+            {Array.from({ length: p.encoded.length }).map((_, i) => (
+              <View key={i} style={{ width: 32, height: 32, borderBottomWidth: 1.5, borderColor: c.ink, marginHorizontal: 5 }} />
+            ))}
+          </View>
+        </View>
+      );
+    case "hunt":
+      return (
+        <View style={{ marginTop: 14 }}>
+          {p.clues.map((cl, i) => (
+            <View key={i} style={{ flexDirection: "row", alignItems: "center", marginBottom: 10, padding: 14, backgroundColor: c.soft, borderRadius: 8, borderLeftWidth: 4, borderLeftColor: c.accent }}>
+              <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: c.accent, alignItems: "center", justifyContent: "center", marginRight: 14 }}>
+                <Text style={{ color: "#FFFFFF", fontFamily: "Fraunces", fontWeight: 900, fontSize: 22 }}>{i + 1}</Text>
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 9, fontWeight: 800, color: c.accent, letterSpacing: 1.2 }}>TARJETA {i + 1}: ¿DÓNDE ESTÁ?</Text>
+                <Text style={{ fontFamily: "Fraunces", fontSize: 16, lineHeight: 1.3, marginTop: 2 }}>{cl}</Text>
+              </View>
+              <View style={{ width: 20, height: 20, borderWidth: 1.5, borderColor: c.ink, borderRadius: 4, marginLeft: 10 }} />
+            </View>
+          ))}
+          <Text style={{ fontSize: 10, fontWeight: 800, color: c.accent, marginTop: 8, textAlign: "center" }}>JUNTAD LAS TARJETAS EN ORDEN: 1 + 2 + 3</Text>
+          <View style={{ flexDirection: "row", justifyContent: "center", marginTop: 10 }}>
+            {p.parts.map((pt, i) => (
+              <View key={i} style={{ flexDirection: "row", marginHorizontal: 8 }}>
+                {pt.split("").map((_, j) => (
+                  <View key={j} style={{ width: 28, height: 32, borderBottomWidth: 1.5, borderColor: c.ink, marginHorizontal: 3 }} />
+                ))}
+              </View>
+            ))}
+          </View>
+        </View>
+      );
     case "jigsaw": {
       const big = p.rows === 2;
       const W = big ? 420 : 440, H = big ? 240 : 270;
@@ -373,7 +501,7 @@ export function PrintableView({ p, c }: { p: Printable } & C) {
               </View>
             ))}
           </View>
-          <Text style={{ ...s.small, marginTop: 6 }}>✂ Recortad por la línea de puntos. Podéis pegar el puzle montado con celo.</Text>
+          <Text style={{ ...s.small, marginTop: 6 }}>Recortad por la línea de puntos. Podéis pegar el puzle montado con celo.</Text>
         </View>
       );
     }
@@ -415,14 +543,16 @@ export async function renderEscapePdf(g: EscapeGame, opts: { playUrl?: string } 
 const KIND_LABEL: Record<string, string> = {
   riddle: "Adivinanza", anagram: "Letras revueltas", caesar: "Mensaje cifrado", numbers: "Números", mirror: "Espejo",
   sequence: "Serie", lock: "Candado", wordsearch: "Sopa de letras", maze: "Laberinto", shapes: "Contar figuras",
-  logic: "Lógica", jigsaw: "Puzle recortable", symbols: "Código de símbolos",
+  logic: "Lógica", jigsaw: "Puzle recortable", symbols: "Código de símbolos", grille: "Rejilla secreta", wheel: "Disco descifrador", hunt: "Búsqueda por casa",
 };
 
 function EscapeDoc({ g, c, playUrl }: { g: EscapeGame; playUrl?: string } & C) {
   const s = styles(c);
   const n = g.puzzles.length;
   const { input } = g;
-  const hasJigsaw = g.puzzles.some((p) => p.kind === "jigsaw");
+  const cutting = g.puzzles.some((p) => ["jigsaw", "grille", "wheel"].includes(p.kind));
+  const hunt = g.puzzles.find((p) => p.printable.type === "hunt");
+  const huntIndex = g.puzzles.findIndex((p) => p.printable.type === "hunt");
   return (
     <Document title={g.title} author="REGALUMO" creator="REGALUMO">
       {/* Portada */}
@@ -458,11 +588,11 @@ function EscapeDoc({ g, c, playUrl }: { g: EscapeGame; playUrl?: string } & C) {
         <Bullet c={c}>Tú eres {g.guardian}: compruebas respuestas y entregas recompensas. Tienes todo a mano en la hoja de control de la página siguiente.</Bullet>
         <Text style={s.h2}>Materiales</Text>
         <Bullet c={c}>Impresora (papel A4 normal), tijeras y {n + 1} sobres numerados.</Bullet>
-        <Bullet c={c}>Lápices o rotuladores para el equipo.{hasJigsaw ? " Tijeras y un poco de celo para el puzle recortable." : ""}</Bullet>
+        <Bullet c={c}>Lápices o rotuladores para el equipo{cutting ? " y celo para los retos recortables" : ""}{g.puzzles.some((p) => p.kind === "wheel") ? " y un clip para el disco" : ""}.</Bullet>
         <Bullet c={c}>Una caja, bolsa o cajón que hará de {g.prize}, con un pequeño premio o sorpresa dentro.</Bullet>
         {g.puzzles.some((p) => p.kind === "lock") ? <Bullet c={c}>Opcional: un candado de combinación para la caja de un acertijo numérico.</Bullet> : null}
         <Text style={s.h2}>Preparación (20-30 minutos)</Text>
-        <Bullet c={c}>1. Imprime todo. Recorta las tarjetas, las etiquetas de los sobres y, si las usas, las invitaciones.{hasJigsaw ? " Las piezas del puzle las recorta el equipo durante el juego." : ""}</Bullet>
+        <Bullet c={c}>1. Imprime todo y recorta las tarjetas, las etiquetas y, si las usas, las invitaciones.{hunt ? " Esconde las tarjetas de la búsqueda donde dice su página." : ""}</Bullet>
         <Bullet c={c}>2. Mete cada acertijo en su sobre numerado (sobre 1 = acertijo 1...). El sobre {n + 1} lleva la hoja del reto final.</Bullet>
         <Bullet c={c}>3. Esconde los sobres 2 a {n + 1} en lugares seguros de la casa o el jardín. Apunta cada escondite en la hoja de control y en la tarjeta de recompensa del acertijo anterior.</Bullet>
         <Bullet c={c}>4. Prepara {g.prize} con el premio y guárdala hasta el final.</Bullet>
@@ -656,6 +786,32 @@ function EscapeDoc({ g, c, playUrl }: { g: EscapeGame; playUrl?: string } & C) {
           </View>
         ))}
       </Page>
+
+      {/* Tarjetas de la búsqueda por casa (solo si hay ese reto) */}
+      {hunt && hunt.printable.type === "hunt" ? (
+        <Page size="A4" style={s.page}>
+          <MotifBand c={c} />
+          <Text style={s.h1}>Tarjetas para esconder</Text>
+          <Text style={{ ...s.small, marginBottom: 12 }}>
+            Para el acertijo {huntIndex + 1} (la búsqueda por la casa). Antes de jugar, recorta estas tarjetas y esconde cada una en su sitio. Los jugadores no deben ver esta página.
+          </Text>
+          {hunt.printable.parts.map((pt, i) => (
+            <View key={i} wrap={false} style={{ height: 200, padding: 4 }}>
+              <View style={{ flex: 1, borderWidth: 1, borderStyle: "dashed", borderColor: c.muted, borderRadius: 8, flexDirection: "row", overflow: "hidden" }}>
+                <View style={{ flex: 1, backgroundColor: c.soft, alignItems: "center", justifyContent: "center" }}>
+                  <Text style={{ fontSize: 10, fontWeight: 800, color: c.accent, letterSpacing: 2 }}>TARJETA {i + 1} DE {hunt.printable.type === "hunt" ? hunt.printable.parts.length : 3}</Text>
+                  <Text style={{ fontFamily: "Fraunces", fontWeight: 900, fontSize: 72, letterSpacing: 6, color: c.ink, marginTop: 6 }}>{pt}</Text>
+                </View>
+                <View style={{ width: 150, padding: 14, justifyContent: "center" }}>
+                  <Text style={{ fontSize: 9, fontWeight: 800, color: c.muted, letterSpacing: 1 }}>ESCÓNDELA</Text>
+                  <Text style={{ fontSize: 13, fontWeight: 800, marginTop: 4 }}>{hunt.printable.type === "hunt" ? hunt.printable.spots[i] : ""}</Text>
+                </View>
+              </View>
+            </View>
+          ))}
+          <Footer c={c} title={g.title} />
+        </Page>
+      ) : null}
 
       {/* Tarjetas de pistas */}
       <Page size="A4" style={s.page}>
