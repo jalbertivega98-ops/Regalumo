@@ -1,26 +1,23 @@
 import { handle, json } from "@/lib/http";
-import { checkAnswer, generateDemo, type EscapeInput } from "@/lib/escape/generator";
+import type { EscapeInput } from "@/lib/escape/generator";
+import { generateDemo } from "@/lib/escape/demo";
 import { verify } from "@/lib/security/tokens";
 import { HttpError } from "@/lib/projects";
-import { clean } from "@/lib/security/text";
 import { track } from "@/lib/analytics";
 
-/** Comprueba una respuesta o entrega una pista de la demo. */
+/** Candado final de la demo: comprueba la combinación, da pistas o la revela. */
 export const POST = handle(async (req: Request) => {
   const body = await req.json().catch(() => ({}));
   const st = verify<{ input: EscapeInput }>(body.state, "escape-demo");
   if (!st) throw new HttpError(400, "La partida ha caducado. Vuelve a generarla.");
   const demo = generateDemo(st.input);
-  const i = Number(body.index);
-  const p = demo.puzzles[i];
-  if (!p) throw new HttpError(400, "Acertijo no válido");
   if (body.hint !== undefined) {
-    const h = Math.min(1, Math.max(0, Number(body.hint) || 0));
-    return json({ hint: p.hints[h] });
+    const h = Math.min(demo.lockHints.length - 1, Math.max(0, Number(body.hint) || 0));
+    return json({ hint: demo.lockHints[h] });
   }
-  if (body.reveal) return json({ answer: p.answer, solution: p.solution });
-  const correct = checkAnswer(p, clean(body.answer, 60));
-  const last = i === demo.puzzles.length - 1;
-  if (correct && last) await track("demo_complete", { product: "escape" });
-  return json({ correct, ...(correct ? { solution: p.solution, ending: last ? demo.ending : undefined } : {}) });
+  if (body.reveal) return json({ code: demo.code, ending: demo.ending });
+  const given = String(body.code ?? "").replace(/\D/g, "").slice(0, 6);
+  const correct = given === demo.code;
+  if (correct) await track("demo_complete", { product: "escape" });
+  return json({ correct, ...(correct ? { ending: demo.ending } : {}) });
 });

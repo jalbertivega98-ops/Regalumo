@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { caesar, checkAnswer, generateDemo, generateGame, gridContains, puzzleCount, solveMaze, spoils, AGES, DURATIONS, type Printable } from "@/lib/escape/generator";
+import { generateDemo, publicDemo } from "@/lib/escape/demo";
+import { caesar, checkAnswer, generateGame, gridContains, puzzleCount, solveMaze, spoils, AGES, DURATIONS, type Printable } from "@/lib/escape/generator";
 import { FINAL_WORDS, THEME_IDS, THEMES } from "@/lib/escape/themes";
 import { RIDDLES } from "@/lib/escape/riddles";
 import { normalizeAnswer } from "@/lib/security/text";
@@ -107,12 +108,35 @@ describe("generador de escape room", () => {
     }
   });
 
-  it("la demo tiene 3 acertijos y acepta respuestas con artículo o tildes", () => {
-    const d = generateDemo({ theme: "piratas", age: "ninos" });
-    expect(d.puzzles).toHaveLength(3);
-    const r = d.puzzles[0];
-    expect(checkAnswer(r, r.answer)).toBe(true);
-    expect(checkAnswer(r, "La " + r.answer.toLowerCase())).toBe(true);
-    expect(checkAnswer(r, "respuesta-incorrecta")).toBe(false);
+  it("la demo: puzle, búsqueda y candado conectados, sin destripar la combinación", () => {
+    for (const theme of THEME_IDS) for (const age of ["peques", "ninos", "jovenes", "adultos"] as const) {
+      const d = generateDemo({ theme, age, hero: "Ana" });
+      const [slide, seek, lock] = d.steps;
+      expect(slide.kind).toBe("slide");
+      expect(seek.kind).toBe("seek");
+      expect(lock.kind).toBe("lock");
+      if (slide.kind !== "slide" || seek.kind !== "seek" || lock.kind !== "lock") continue;
+      const n = age === "peques" ? 4 : 9;
+      // Las piezas son una permutación desordenada.
+      expect([...slide.order].sort((a, b) => a - b)).toEqual(Array.from({ length: n }, (_, i) => i));
+      expect(slide.order.some((v, i) => v !== i)).toBe(true);
+      // La búsqueda tiene exactamente tantos objetivos como su cifra, sin objetos solapados.
+      expect(seek.items.filter((i) => i.target)).toHaveLength(seek.digit);
+      const free = seek.items.filter((i) => !i.behind);
+      for (const a of free) for (const b of free) if (a !== b) expect(Math.hypot(a.x - b.x, (a.y - b.y) * 0.75)).toBeGreaterThan(6);
+      // Los que asoman por detrás no coinciden entre sí y quedan dentro de la escena.
+      for (const a of seek.items) {
+        expect(a.x).toBeGreaterThan(0); expect(a.x).toBeLessThan(100); expect(a.y).toBeGreaterThan(0); expect(a.y).toBeLessThan(100);
+      }
+      if (age === "peques") expect(seek.items.some((i) => i.behind)).toBe(false);
+      // Tres cifras distintas, la combinación usa las ganadas en los retos y la nota cuenta bien los símbolos.
+      expect(new Set(d.code).size).toBe(3);
+      expect(d.code).toContain(String(slide.digit));
+      expect(d.code).toContain(String(seek.digit));
+      expect(lock.note).not.toMatch(/de el /);
+      // El navegador no recibe la combinación.
+      expect(JSON.stringify(publicDemo(d))).not.toContain(`"code"`);
+      expect(publicDemo(d)).not.toHaveProperty("lockHints");
+    }
   });
 });

@@ -19,7 +19,7 @@ const FACTS = [
 
 const STEPS = [
   { icon: "🎨", title: "Elige y personaliza", text: "Temática, edad, dificultad, duración y el nombre del protagonista y de su equipo. La historia se escribe con esos datos." },
-  { icon: "👀", title: "Pruébalo gratis", text: "Jugad una mini versión de 3 acertijos al momento, sin registro y sin tarjeta. Cambia lo que quieras hasta que te guste." },
+  { icon: "👀", title: "Pruébalo gratis", text: "Jugad al momento una mini aventura: un puzle, una búsqueda y un candado, sin registro y sin tarjeta. Cambia lo que quieras hasta que te guste." },
   { icon: "⬇️", title: "Paga y descarga", text: "Pago único y el PDF completo llega al instante (también por correo). Puedes imprimirlo las veces que quieras." },
   { icon: "✉️", title: "Imprime, esconde y ¡a jugar!", text: "Recorta, mete cada reto en su sobre con su etiqueta y escóndelos por casa. La guía te dice dónde va cada uno." },
 ];

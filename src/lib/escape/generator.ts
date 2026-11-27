@@ -67,7 +67,7 @@ export interface EscapeGame {
 
 /* ---------- utilidades deterministas ---------- */
 
-function hash(s: string) {
+export function hash(s: string) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
@@ -567,7 +567,7 @@ function ctxFor(input: EscapeInput, salt: string, finalWord = ""): Ctx {
   };
 }
 
-function heroPhrase(input: EscapeInput) {
+export function heroPhrase(input: EscapeInput) {
   const h = input.hero.trim();
   const t = input.team.trim();
   if (h && t) return `Hoy la misión es para ${h} y su equipo, ${t}. `;
@@ -605,22 +605,6 @@ export function generateGame(raw: unknown): EscapeGame {
     prize: theme.prize,
     hintTokens: { facil: n, media: Math.ceil(n * 0.6), dificil: Math.ceil(n / 3) }[input.difficulty],
     minutesPerPuzzle: minutes,
-  };
-}
-
-/** Demo gratuita: tres acertijos cortos jugables en pantalla. */
-export function generateDemo(raw: unknown) {
-  const input = escapeSchema.parse(raw);
-  const theme = THEMES[input.theme];
-  const ctx = ctxFor(input, "demo");
-  const kinds = input.age === "peques" ? ["shapes", "riddle", "mirror"] : input.age === "ninos" ? ["riddle", "numbers", "anagram"] : ["riddle", "caesar", "sequence"];
-  const puzzles = kinds.map((k, i) => ({ ...GENERATORS[k](ctx), chapter: theme.chapters[i], reward: "" }));
-  return {
-    title: input.hero.trim() ? `${theme.title}: la aventura de ${input.hero.trim()}` : theme.title,
-    intro: theme.intro.replace("{heroe_frase}", heroPhrase(input)),
-    ending: theme.ending,
-    themeName: theme.name,
-    puzzles,
   };
 }
 

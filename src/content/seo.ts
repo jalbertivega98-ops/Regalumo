@@ -69,7 +69,7 @@ export const SEO_PAGES: SeoPage[] = [
     faq: [
       { q: "¿Necesito materiales especiales?", a: "No. Basta con una impresora, papel A4, tijeras, sobres y una caja que haga de cofre final. Un candado de números es opcional." },
       { q: "¿Cuánto se tarda en prepararlo?", a: "Entre 20 y 30 minutos: imprimir, recortar las tarjetas, meter cada acertijo en su sobre y esconderlos." },
-      { q: "¿Puedo probarlo antes de pagar?", a: "Sí. La demo gratuita genera una mini aventura de 3 acertijos con los datos que elijas y puedes jugarla en pantalla." },
+      { q: "¿Puedo probarlo antes de pagar?", a: "Sí. La demo gratuita genera una mini aventura con los datos que elijas: un puzle de piezas, una búsqueda de objetos y un candado que se abre con lo que ganáis en cada reto." },
     ],
     related: ["escape-room-para-cumpleanos", "escape-room-para-imprimir", "regalos-personalizados"],
   },
@@ -921,7 +921,7 @@ export const SEO_PAGES: SeoPage[] = [
     faq: [
       { q: "¿Es un juego distinto al escape room normal?", a: "Usa el mismo generador, con historia, palabras y ambientación de Navidad. Cada partida se crea con tus datos: edad, dificultad, duración y protagonista." },
       { q: "¿Llega a tiempo para Nochebuena?", a: "Sí. No hay envío: el PDF se descarga justo después del pago, aunque lo compres el mismo día." },
-      { q: "¿Cuánto cuesta?", a: "9,99 € el juego completo, y puedes imprimirlo tantas veces como quieras para tu familia. La demo de 3 acertijos es gratis." },
+      { q: "¿Cuánto cuesta?", a: "9,99 € el juego completo, y puedes imprimirlo tantas veces como quieras para tu familia. La demo de 3 retos es gratis." },
     ],
     related: ["regalos-de-navidad-personalizados", "regalos-de-reyes-para-ninos", "escape-room-para-imprimir"],
   },
