@@ -51,7 +51,7 @@ export const SEO_PAGES: SeoPage[] = [
         paragraphs: ["Todo lo necesario para imprimir, recortar y jugar el mismo día:"],
         bullets: [
           "Historia original para leer en voz alta al empezar.",
-          "Entre 4 y 9 acertijos variados: puzle recortable, código de símbolos, cifrados, laberintos, sopas de letras, adivinanzas, candados numéricos y lógica.",
+          "Entre 4 y 9 retos variados: búsqueda por casa, puzle recortable, disco descifrador, rejilla secreta, código de símbolos, laberintos, adivinanzas, candados y lógica.",
           "Tarjetas de recompensa con letras que forman la palabra final.",
           "Dos pistas por acertijo, en tarjetas para recortar.",
           "Guía del organizador con materiales, preparación paso a paso y consejos de seguridad.",
@@ -69,7 +69,7 @@ export const SEO_PAGES: SeoPage[] = [
     faq: [
       { q: "¿Necesito materiales especiales?", a: "No. Basta con una impresora, papel A4, tijeras, sobres y una caja que haga de cofre final. Un candado de números es opcional." },
       { q: "¿Cuánto se tarda en prepararlo?", a: "Entre 20 y 30 minutos: imprimir, recortar las tarjetas, meter cada acertijo en su sobre y esconderlos." },
-      { q: "¿Puedo probarlo antes de pagar?", a: "Sí. La demo gratuita genera una mini aventura de 3 acertijos con los datos que elijas y puedes jugarla en pantalla." },
+      { q: "¿Puedo probarlo antes de pagar?", a: "Sí. La demo gratuita genera una mini aventura con los datos que elijas: un puzle de piezas, una búsqueda de objetos y un candado que se abre con lo que ganáis en cada reto." },
     ],
     related: ["escape-room-para-cumpleanos", "escape-room-para-imprimir", "regalos-personalizados"],
   },
@@ -900,7 +900,7 @@ export const SEO_PAGES: SeoPage[] = [
         paragraphs: ["El mismo juego completo que el resto de temáticas, ambientado en Navidad:"],
         bullets: [
           "La historia del duende Cascabel para leer en voz alta.",
-          "Entre 4 y 9 acertijos según la edad: adivinanzas navideñas, un puzle recortable, código de símbolos, sopas de letras con palabras navideñas, cifrados, laberintos, candados y lógica.",
+          "Entre 4 y 9 retos según la edad: búsqueda por casa, puzle recortable, disco descifrador, rejilla secreta, código de símbolos, adivinanzas navideñas, laberintos, candados y lógica.",
           "Tarjetas de recompensa con letras que forman la palabra que abre el baúl.",
           "Dos pistas por acertijo, guía del organizador, soluciones y diploma final.",
         ],
@@ -921,7 +921,7 @@ export const SEO_PAGES: SeoPage[] = [
     faq: [
       { q: "¿Es un juego distinto al escape room normal?", a: "Usa el mismo generador, con historia, palabras y ambientación de Navidad. Cada partida se crea con tus datos: edad, dificultad, duración y protagonista." },
       { q: "¿Llega a tiempo para Nochebuena?", a: "Sí. No hay envío: el PDF se descarga justo después del pago, aunque lo compres el mismo día." },
-      { q: "¿Cuánto cuesta?", a: "9,99 € el juego completo, y puedes imprimirlo tantas veces como quieras para tu familia. La demo de 3 acertijos es gratis." },
+      { q: "¿Cuánto cuesta?", a: "9,99 € el juego completo, y puedes imprimirlo tantas veces como quieras para tu familia. La demo de 3 retos es gratis." },
     ],
     related: ["regalos-de-navidad-personalizados", "regalos-de-reyes-para-ninos", "escape-room-para-imprimir"],
   },

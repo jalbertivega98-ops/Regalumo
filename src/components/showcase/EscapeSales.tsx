@@ -19,7 +19,7 @@ const FACTS = [
 
 const STEPS = [
   { icon: "🎨", title: "Elige y personaliza", text: "Temática, edad, dificultad, duración y el nombre del protagonista y de su equipo. La historia se escribe con esos datos." },
-  { icon: "👀", title: "Pruébalo gratis", text: "Jugad una mini versión de 3 acertijos al momento, sin registro y sin tarjeta. Cambia lo que quieras hasta que te guste." },
+  { icon: "👀", title: "Pruébalo gratis", text: "Jugad al momento una mini aventura: un puzle, una búsqueda y un candado, sin registro y sin tarjeta. Cambia lo que quieras hasta que te guste." },
   { icon: "⬇️", title: "Paga y descarga", text: "Pago único y el PDF completo llega al instante (también por correo). Puedes imprimirlo las veces que quieras." },
   { icon: "✉️", title: "Imprime, esconde y ¡a jugar!", text: "Recorta, mete cada reto en su sobre con su etiqueta y escóndelos por casa. La guía te dice dónde va cada uno." },
 ];
@@ -41,6 +41,7 @@ const INCLUDES = [
   ["🎟️", "Tarjetas de recompensa que llevan al siguiente sobre"],
   ["🏷️", "Etiquetas para los sobres, ya numeradas"],
   ["💌", "Invitaciones para los jugadores"],
+  ["🔎", "Tarjetas para esconder por casa (búsqueda del tesoro)"],
   ["💡", "Fichas de pista para cuando haya atascos"],
   ["✅", "Soluciones explicadas para el organizador"],
   ["🏅", "Diploma de equipo para el final"],
@@ -48,13 +49,13 @@ const INCLUDES = [
 ];
 
 const PUZZLES: { id: string; name: string; text: string; age: string }[] = [
+  { id: "hunt", name: "Búsqueda por casa", text: "Adivinanzas que llevan a sitios reales de casa. Allí esperan las tarjetas con trozos de la contraseña.", age: "Todas las edades" },
   { id: "jigsaw", name: "Puzle recortable", text: "Se recortan las piezas y, al montarlas, aparece la contraseña.", age: "Todas las edades" },
+  { id: "wheel", name: "Disco descifrador", text: "Dos discos que se recortan y se giran para descifrar un mensaje secreto.", age: "Desde 8 años" },
+  { id: "grille", name: "Rejilla secreta", text: "Una plantilla con ventanas que, puesta encima de una tabla de letras, deja ver la palabra.", age: "Desde 8 años" },
   { id: "symbols", name: "Código de símbolos", text: "Un mensaje secreto escrito con símbolos y su tabla para descifrarlo.", age: "Todas las edades" },
   { id: "maze", name: "Laberinto de letras", text: "El camino correcto recoge las letras de la palabra.", age: "Todas las edades" },
-  { id: "riddle", name: "Adivinanzas", text: "Adivinanzas de la temática elegida, sin respuestas repetidas.", age: "Todas las edades" },
   { id: "shapes", name: "Cuenta y encontrarás", text: "Contar formas para sacar el número de la clave. Ideal para peques.", age: "5 a 7 años" },
-  { id: "wordsearch", name: "Sopa de letras incompleta", text: "Una de las palabras de la lista no está: esa es la respuesta.", age: "Desde 8 años" },
-  { id: "caesar", name: "Mensaje cifrado", text: "Cada letra se ha desplazado en el abecedario. Hay que devolverla a su sitio.", age: "Desde 8 años" },
   { id: "logic", name: "Reto de lógica", text: "Con unas pocas pistas, averiguar quién llegó primero.", age: "Desde 12 años" },
 ];
 
@@ -204,7 +205,7 @@ export function EscapeSales({
       )}
 
       <section className="mx-auto max-w-7xl px-4" aria-label="Tipos de reto">
-        <SectionTitle eyebrow="Los retos" title="Acertijos de verdad, no fichas de colorear" text="Se combinan según la edad y la duración, y nunca se repite la misma respuesta. Estos son algunos de los que pueden tocar:" />
+        <SectionTitle eyebrow="Los retos" title="Retos para recortar, girar y buscar por casa" text="Se combinan según la edad y la duración, y nunca se repite la misma respuesta. Estos son algunos de los que pueden tocar:" />
         <ul className="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4">
           {PUZZLES.map((p) => (
             <li key={p.id} className="card overflow-hidden p-2">
@@ -224,7 +225,7 @@ export function EscapeSales({
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-center text-ink-soft">Y además: candados de números, anagramas, letras en el espejo, series y más.</p>
+        <p className="mt-4 text-center text-ink-soft">Y además: adivinanzas, mensajes cifrados, sopas de letras, candados de números, series y más.</p>
       </section>
 
       <section className="mx-auto max-w-7xl px-4" aria-label="Jugar con el móvil">

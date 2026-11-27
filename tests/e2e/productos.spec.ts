@@ -18,21 +18,44 @@ test("periódico: datos propios, foto, valoración, pago simulado y PDF sin marc
   expect(bytes.length).toBeGreaterThan(50_000);
 });
 
-test("escape room: demo jugable con pista, fallo y solución; compra y PDF", async ({ page }) => {
+test("escape room: demo jugable (puzle, búsqueda y candado) con pistas, fallo y solución; compra y PDF", async ({ page }) => {
   await page.goto("/crear/escape-room");
   await page.fill("#hero", "Mateo");
   await page.getByText("Jugar la demo gratis").click();
-  await expect(page.getByText("Reto 1")).toBeVisible();
+  // Reto 1: puzle de piezas. Dos pistas y la solución.
+  await expect(page.getByRole("heading", { name: /^Reto 1:/ })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Pieza en la posición/ })).toHaveCount(9);
+  await page.getByRole("button", { name: "Pieza en la posición 1" }).click();
+  await expect(page.getByRole("button", { name: /posición 1 \(seleccionada\)/ })).toBeVisible();
   await page.getByText("Pedir una pista").click();
   await expect(page.getByText("Pista 1")).toBeVisible();
-  await page.fill("#answer", "nolose");
-  await page.getByText("Comprobar").click();
-  await expect(page.getByText("Todavía no")).toBeVisible();
   await page.getByText("Pedir una pista").click();
   await page.getByText("Ver la solución").click();
-  await expect(page.getByText("Solución:")).toBeVisible();
+  await expect(page.getByText(/primera cifra del candado es \d/)).toBeVisible();
   await page.getByText("Siguiente reto").click();
-  await expect(page.getByText("Reto 2")).toBeVisible();
+  // Reto 2: buscar objetos. Si faltan, avisa.
+  await expect(page.getByRole("heading", { name: /^Reto 2:/ })).toBeVisible();
+  await page.getByRole("button", { name: /^Ya están/ }).click();
+  await expect(page.getByText("Todavía falta alguna")).toBeVisible();
+  const objetivos = page.locator("section[aria-live] [tabindex='0']");
+  const n = await objetivos.count();
+  expect(n).toBeGreaterThanOrEqual(3);
+  for (let i = 0; i < n; i++) await objetivos.nth(i).click();
+  await page.getByRole("button", { name: /^Ya están/ }).click();
+  await expect(page.getByText(`Eran ${n}.`)).toBeVisible();
+  await page.getByText("Siguiente reto").click();
+  // Reto 3: candado. Combinación mala, pistas del servidor y combinación buena.
+  await expect(page.getByRole("heading", { name: /^Reto 3:/ })).toBeVisible();
+  const abrir = page.locator("form").getByRole("button", { name: /Abrir/ });
+  await abrir.click();
+  await expect(page.getByText("El candado no se abre")).toBeVisible();
+  await page.getByText("Pedir una pista").click();
+  await page.getByText("Pedir una pista").click();
+  const pista = await page.getByText(/La combinación es/).innerText();
+  const code = pista.match(/(\d) - (\d) - (\d)/)!.slice(1).map(Number);
+  for (let w = 0; w < 3; w++) for (let k = 0; k < code[w]; k++) await page.getByRole("button", { name: `Subir la rueda ${w + 1}` }).click();
+  await abrir.click();
+  await expect(page.getByText("El candado se abre")).toBeVisible();
   const { bytes } = await payAndDownload(page);
   expect(bytes.length).toBeGreaterThan(20_000);
 });
@@ -51,7 +74,7 @@ test("un pedido no se puede ver sin su enlace firmado", async ({ page, request }
   await page.goto("/crear/escape-room");
   await page.fill("#hero", "Ana");
   await page.getByText("Jugar la demo gratis").click();
-  await expect(page.getByText("Reto 1")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Reto 1:/ })).toBeVisible();
   const { url } = await payAndDownload(page);
   const orderId = new URL(url).pathname.split("/").pop()!;
   const r = await request.get(`/api/orders/${orderId}`);
@@ -65,7 +88,7 @@ test("escape room: panel para jugar desde el móvil tras la compra", async ({ pa
   await page.goto("/crear/escape-room");
   await page.fill("#hero", "Vera");
   await page.getByText("Jugar la demo gratis").click();
-  await expect(page.getByText("Reto 1")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Reto 1:/ })).toBeVisible();
   await payAndDownload(page);
   // Datos del proyecto (con su token de propietario) para conocer las respuestas en la prueba.
   const playHref = await page.getByText("Jugar desde el móvil").getAttribute("href");

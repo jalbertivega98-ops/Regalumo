@@ -1,17 +1,13 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { PrintableHtml } from "./PrintableHtml";
-import { Watermark } from "@/components/Watermark";
+import { EscapeDemo, type PublicDemo } from "./EscapeDemo";
 import { UnlockPanel } from "@/components/UnlockPanel";
 import { api, getOrderKey, getToken, saveToken } from "@/lib/client";
 import { AGES, DIFFICULTIES, DURATIONS, THEME_OPTIONS, puzzleCount, type AgeId, type Difficulty } from "@/lib/escape/options";
-import type { Printable } from "@/lib/escape/generator";
 import { trackStep } from "@/lib/track-client";
 
 type Input = { age: AgeId; theme: string; players: number; difficulty: Difficulty; duration: number; hero: string; team: string };
-type DemoPuzzle = { kind: string; title: string; chapter: string; instructions: string; printable: Printable };
-type Demo = { state: string; title: string; intro: string; themeName: string; puzzles: DemoPuzzle[] };
 
 const DEFAULT: Input = { age: "ninos", theme: "piratas", players: 4, difficulty: "media", duration: 60, hero: "", team: "" };
 
@@ -22,12 +18,7 @@ export function EscapeEditor() {
     const tema = params.get("tema");
     return THEME_OPTIONS.some((t) => t.id === tema) ? { ...DEFAULT, theme: tema as string } : DEFAULT;
   });
-  const [demo, setDemo] = useState<Demo | null>(null);
-  const [step, setStep] = useState(-1);
-  const [answer, setAnswer] = useState("");
-  const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(null);
-  const [hints, setHints] = useState<string[]>([]);
-  const [ending, setEnding] = useState("");
+  const [demo, setDemo] = useState<PublicDemo | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [project, setProject] = useState<{ id: string; token: string; status: string; orderId?: string } | null>(null);
@@ -52,50 +43,15 @@ export function EscapeEditor() {
     setBusy(true);
     setError("");
     try {
-      const d = await api<Demo>("/api/escape/demo", { method: "POST", body: JSON.stringify({ input }) });
+      const d = await api<PublicDemo>("/api/escape/demo", { method: "POST", body: JSON.stringify({ input }) });
       setDemo(d);
       trackStep("preview", "escape");
-      setStep(0);
-      setAnswer("");
-      setFeedback(null);
-      setHints([]);
-      setEnding("");
       setTimeout(() => gameRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     } catch (e) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
     }
-  }
-
-  async function check(e: React.FormEvent) {
-    e.preventDefault();
-    if (!demo || !answer.trim()) return;
-    const r = await api<{ correct: boolean; solution?: string; ending?: string }>("/api/escape/check", { method: "POST", body: JSON.stringify({ state: demo.state, index: step, answer }) });
-    if (r.correct) {
-      setFeedback({ ok: true, text: `¡Correcto! ${r.solution ?? ""}` });
-      if (r.ending) setEnding(r.ending);
-    } else setFeedback({ ok: false, text: "Todavía no. Revisa el reto o pide una pista." });
-  }
-
-  async function hint() {
-    if (!demo) return;
-    const r = await api<{ hint: string }>("/api/escape/check", { method: "POST", body: JSON.stringify({ state: demo.state, index: step, hint: hints.length }) });
-    setHints((h) => [...h, r.hint]);
-  }
-
-  async function reveal() {
-    if (!demo) return;
-    const r = await api<{ answer: string; solution: string }>("/api/escape/check", { method: "POST", body: JSON.stringify({ state: demo.state, index: step, reveal: true }) });
-    setFeedback({ ok: true, text: `Solución: ${r.solution}` });
-    if (step === demo.puzzles.length - 1) setEnding("¡Aventura completada! En el juego completo os esperan más retos y una palabra final.");
-  }
-
-  function next() {
-    setStep((s) => s + 1);
-    setAnswer("");
-    setFeedback(null);
-    setHints([]);
   }
 
   async function ensureProject() {
@@ -110,13 +66,12 @@ export function EscapeEditor() {
   }
 
   const n = puzzleCount(input);
-  const puzzle = demo && step >= 0 ? demo.puzzles[step] : null;
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <p className="font-semibold text-violet">Escape room personalizado · demo gratuita</p>
       <h1 className="font-display text-4xl font-black mt-1">Diseña vuestra aventura</h1>
-      <p className="mt-2 max-w-2xl text-ink-soft">Elige edad y aventura, y juega ahora gratis una mini versión de 3 acertijos. Sin registro.</p>
+      <p className="mt-2 max-w-2xl text-ink-soft">Elige edad y aventura, y juega ahora gratis una mini aventura de 3 retos: un puzle, una búsqueda y un candado. Sin registro.</p>
 
       {project?.status === "paid" && project.orderId && (
         <div className="mt-4 rounded-2xl bg-mint/15 p-4">
@@ -208,49 +163,7 @@ export function EscapeEditor() {
 
       {demo && (
         <section ref={gameRef} className="mt-10 scroll-mt-24" aria-live="polite">
-          <div className="rounded-[2rem] bg-ink p-5 text-white sm:p-8">
-            <p className="text-sun font-bold tracking-widest text-xs uppercase">Demo · {demo.themeName}</p>
-            <h2 className="font-display text-3xl font-black mt-1">{demo.title}</h2>
-            {step === 0 && !feedback && <p className="mt-3 max-w-3xl text-white/85 leading-relaxed">{demo.intro}</p>}
-            <div className="mt-4 flex gap-2" aria-label="Progreso">
-              {demo.puzzles.map((_, i) => (
-                <span key={i} className={`h-2 flex-1 rounded-full ${i < step || (i === step && feedback?.ok) ? "bg-sun" : i === step ? "bg-white/60" : "bg-white/20"}`} />
-              ))}
-            </div>
-          </div>
-          {puzzle && (
-            <div className="card mt-4 p-5 sm:p-8">
-              <p className="text-sm italic text-ink-soft">{puzzle.chapter}</p>
-              <h3 className="font-display text-2xl font-bold mt-1">Reto {step + 1}: {puzzle.title}</h3>
-              <p className="mt-2">{puzzle.instructions}</p>
-              <div className="relative mt-4 overflow-hidden">
-                <PrintableHtml p={puzzle.printable} />
-                <Watermark opacity={0.22} size={190} />
-              </div>
-              {!feedback?.ok ? (
-                <form onSubmit={check} className="mt-5 flex flex-col gap-2 sm:flex-row">
-                  <label htmlFor="answer" className="sr-only">Respuesta</label>
-                  <input id="answer" className="field" value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Escribe vuestra respuesta" autoComplete="off" autoCorrect="off" autoCapitalize="none" spellCheck={false} enterKeyHint="done" />
-                  <button className="btn btn-dark">Comprobar</button>
-                </form>
-              ) : null}
-              {feedback && <p className={`mt-3 rounded-xl p-3 font-semibold ${feedback.ok ? "bg-mint/15 text-ink" : "bg-coral/10 text-coral-dark"}`}>{feedback.text}</p>}
-              {hints.map((h, i) => (
-                <p key={i} className="mt-2 rounded-xl bg-sun/25 p-3 text-sm"><b>Pista {i + 1}:</b> {h}</p>
-              ))}
-              <div className="mt-4 flex flex-wrap gap-3 text-sm">
-                {!feedback?.ok && hints.length < 2 && <button type="button" className="underline" onClick={hint}>Pedir una pista</button>}
-                {!feedback?.ok && hints.length === 2 && <button type="button" className="underline" onClick={reveal}>Ver la solución</button>}
-                {feedback?.ok && step < demo.puzzles.length - 1 && <button type="button" className="btn btn-primary" onClick={next}>Siguiente reto →</button>}
-              </div>
-              {ending && (
-                <div className="mt-5 rounded-2xl bg-violet/10 p-5">
-                  <p className="font-display text-xl font-bold">{ending}</p>
-                  <p className="mt-2 text-sm">Así funciona cada reto del juego completo: en papel, con sobres, pistas y una palabra final para abrir el premio.</p>
-                </div>
-              )}
-            </div>
-          )}
+          <EscapeDemo key={demo.state} demo={demo} />
         </section>
       )}
 

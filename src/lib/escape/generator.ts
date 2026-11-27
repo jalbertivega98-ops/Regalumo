@@ -34,7 +34,13 @@ export type Printable =
   /** Puzle recortable: la palabra se imprime partida en piezas desordenadas (algunas giradas). */
   | { type: "jigsaw"; word: string; rows: number; cols: number; pieces: { r: number; c: number; flip: boolean }[] }
   /** Cifrado de símbolos: sym = 0..17 (forma = sym % 6, estilo = sym / 6: contorno, relleno, con punto). */
-  | { type: "symbols"; key: { letter: string; sym: number }[]; message: number[] };
+  | { type: "symbols"; key: { letter: string; sym: number }[]; message: number[] }
+  /** Rejilla secreta: tabla de letras + plantilla con ventanas (holes) que se recorta; rot = cuartos de vuelta con que se imprime la plantilla. */
+  | { type: "grille"; size: number; grid: string[]; holes: number[]; rot: number }
+  /** Disco descifrador recortable: el disco pequeño se gira hasta que su A quede bajo «key». */
+  | { type: "wheel"; encoded: string; key: string }
+  /** Búsqueda por casa: adivinanzas que llevan a sitios reales; el organizador esconde allí las tarjetas (parts). */
+  | { type: "hunt"; clues: string[]; spots: string[]; parts: string[] };
 
 export interface Puzzle {
   kind: string;
@@ -67,7 +73,7 @@ export interface EscapeGame {
 
 /* ---------- utilidades deterministas ---------- */
 
-function hash(s: string) {
+export function hash(s: string) {
   let h = 2166136261;
   for (let i = 0; i < s.length; i++) {
     h ^= s.charCodeAt(i);
@@ -131,7 +137,10 @@ function themeWords(ctx: Ctx) {
 
 function takeWord(ctx: Ctx, maxLen = 9, minLen = 3) {
   const all = themeWords(ctx);
-  const pool = all.filter((w) => !ctx.usedWords.has(w) && w.length <= maxLen && w.length >= minLen);
+  // Las respuestas de las adivinanzas de la temática se guardan para las adivinanzas.
+  const riddleWords = new Set(RIDDLES.filter((r) => r.themes?.includes(ctx.input.theme)).flatMap((r) => r.accept.map((a) => normalizeAnswer(a).toUpperCase())));
+  const fresh = all.filter((w) => !ctx.usedWords.has(w) && w.length <= maxLen && w.length >= minLen);
+  const pool = fresh.filter((w) => !riddleWords.has(w)).length ? fresh.filter((w) => !riddleWords.has(w)) : fresh;
   const w = ctx.rng.pick(pool.length ? pool : all.filter((x) => x.length <= maxLen && x.length >= Math.min(minLen, 4)));
   ctx.usedWords.add(w);
   return w;
@@ -543,14 +552,88 @@ const symbols: Gen = (ctx) => {
   };
 };
 
-const GENERATORS: Record<string, Gen> = { jigsaw, symbols, riddle, anagram, caesar: caesarPuzzle, numbers, mirror, sequence, lock, wordsearch, maze, shapes, logic };
+/** Posición de una casilla tras girar la plantilla «rot» cuartos de vuelta en el sentido del reloj. */
+export function rotateCell(i: number, n: number, rot: number) {
+  let r = Math.floor(i / n), c = i % n;
+  for (let k = 0; k < ((rot % 4) + 4) % 4; k++) [r, c] = [c, n - 1 - r];
+  return r * n + c;
+}
+
+const grille: Gen = (ctx) => {
+  const w = takeWord(ctx, ctx.ageLevel <= 1 ? 6 : 8, 4);
+  const size = ctx.ageLevel <= 1 ? 5 : 6;
+  const all = Array.from({ length: size * size }, (_, i) => i);
+  const holes = ctx.rng.shuffle(all).slice(0, w.length).sort((a, b) => a - b);
+  const grid = all.map((i) => (holes.includes(i) ? w[holes.indexOf(i)] : ctx.rng.pick(ABC.split(""))));
+  // Desde 12 años, la plantilla se imprime girada: hay que girarla hasta que la estrella coincida.
+  const rot = ctx.ageLevel >= 2 ? ctx.rng.int(1, 3) : 0;
+  return {
+    kind: "grille",
+    title: "La rejilla secreta",
+    instructions: `Recortad la plantilla por la línea de puntos y recortad también sus ventanas grises. Ponedla encima de la tabla de letras${rot ? ", giradla hasta que su estrella quede en la misma esquina que la de la tabla," : " con la estrella en la misma esquina que la de la tabla"} y leed las letras que asoman, de izquierda a derecha y de arriba abajo.`,
+    printable: { type: "grille", size, grid, holes, rot },
+    answer: w,
+    accept: [normalizeAnswer(w)],
+    hints: ["Para recortar una ventana, doblad un poco el papel por el centro del cuadro gris y cortad desde ahí.", `La palabra tiene ${w.length} letras y empieza por "${w[0]}".`],
+    solution: `Con la plantilla bien colocada, por las ventanas se lee ${w}.`,
+  };
+};
+
+const wheel: Gen = (ctx) => {
+  const w = takeWord(ctx, 8, 4);
+  const shift = ctx.rng.int(3, 12);
+  const key = ABC[shift];
+  return {
+    kind: "wheel",
+    title: "El disco descifrador",
+    instructions: `Recortad los dos discos y poned el pequeño encima del grande (podéis unirlos por el centro con un clip o un encuadernador). Girad el pequeño hasta que su A quede justo debajo de la ${key} del grande. Después buscad cada letra del mensaje en el disco grande y escribid la letra del pequeño que queda debajo.`,
+    printable: { type: "wheel", encoded: caesar(w, shift), key },
+    answer: w,
+    accept: [normalizeAnswer(w)],
+    hints: [`Con el disco bien colocado, la ${key} del grande tiene debajo la A del pequeño.`, `La palabra tiene ${w.length} letras y empieza por "${w[0]}".`],
+    solution: `Con la A bajo la ${key}, el mensaje ${caesar(w, shift)} se lee ${w}.`,
+  };
+};
+
+/** Escondites seguros y fáciles de encontrar en cualquier casa. */
+const SPOTS: { place: string; riddle: string }[] = [
+  { place: "dentro de la nevera", riddle: "Por dentro siempre es invierno y guarda la leche y los yogures." },
+  { place: "debajo de una almohada", riddle: "Es blandita, vive en la cama y cada noche os guarda los sueños." },
+  { place: "dentro de un zapato de la entrada", riddle: "Tiene lengua pero no habla, tiene cordones y os lleva a todas partes." },
+  { place: "bajo un cojín del sofá", riddle: "Tiene brazos pero no manos, y la familia se sienta en él a ver la tele." },
+  { place: "entre los libros de una estantería", riddle: "Están llenos de historias, pero hay que abrirlos para escucharlas." },
+  { place: "debajo de una alfombra", riddle: "Todo el mundo la pisa y nunca se queja." },
+  { place: "junto a los cepillos de dientes", riddle: "Tienen muchos pelos y, mañana y noche, os dejan la sonrisa limpia." },
+  { place: "en la ducha o la bañera", riddle: "Allí llueve dentro de casa, pero solo cuando alguien abre el grifo." },
+  { place: "junto a una planta", riddle: "Vive en casa, bebe agua y nunca da un paso." },
+];
+
+const hunt: Gen = (ctx) => {
+  const w = takeWord(ctx, 7, 5);
+  const k = 3;
+  const cut = [0, Math.ceil(w.length / 3), Math.ceil((2 * w.length) / 3), w.length];
+  const parts = Array.from({ length: k }, (_, i) => w.slice(cut[i], cut[i + 1]));
+  const spots = ctx.rng.shuffle(SPOTS).slice(0, k);
+  return {
+    kind: "hunt",
+    title: "La búsqueda por la casa",
+    instructions: `${cap(ctx.theme.guardian)} ha escondido ${k} tarjetas en sitios de esta casa. Cada adivinanza dice dónde buscar. Cuando tengáis las ${k}, ponedlas en orden (1, 2 y 3) y leeréis la contraseña.`,
+    printable: { type: "hunt", clues: spots.map((x) => x.riddle), spots: spots.map((x) => x.place), parts },
+    answer: w,
+    accept: [normalizeAnswer(w)],
+    hints: [`La tarjeta 1 está ${spots[0].place}.`, `La palabra tiene ${w.length} letras y empieza por "${w[0]}".`],
+    solution: `Las tarjetas estaban ${spots.map((x) => x.place).join(", ")}. Juntas dicen ${parts.join(" + ")} = ${w}.`,
+  };
+};
+
+const GENERATORS: Record<string, Gen> = { grille, wheel, hunt, jigsaw, symbols, riddle, anagram, caesar: caesarPuzzle, numbers, mirror, sequence, lock, wordsearch, maze, shapes, logic };
 
 /** Orden preferente de tipos según la edad (se toman los N primeros, con variedad). */
 const BY_AGE: Record<AgeId, string[]> = {
-  peques: ["shapes", "riddle", "jigsaw", "maze", "mirror", "lock", "symbols", "riddle", "anagram"],
-  ninos: ["riddle", "numbers", "jigsaw", "maze", "wordsearch", "symbols", "lock", "anagram", "caesar"],
-  jovenes: ["caesar", "riddle", "jigsaw", "wordsearch", "sequence", "symbols", "maze", "logic", "lock"],
-  adultos: ["riddle", "caesar", "logic", "symbols", "wordsearch", "jigsaw", "sequence", "maze", "lock"],
+  peques: ["jigsaw", "hunt", "shapes", "maze", "riddle", "symbols", "mirror", "lock", "riddle"],
+  ninos: ["jigsaw", "wheel", "hunt", "grille", "symbols", "maze", "riddle", "wordsearch", "lock"],
+  jovenes: ["grille", "wheel", "hunt", "jigsaw", "logic", "symbols", "caesar", "sequence", "maze"],
+  adultos: ["wheel", "grille", "logic", "hunt", "symbols", "jigsaw", "caesar", "sequence", "wordsearch"],
 };
 
 
@@ -567,7 +650,7 @@ function ctxFor(input: EscapeInput, salt: string, finalWord = ""): Ctx {
   };
 }
 
-function heroPhrase(input: EscapeInput) {
+export function heroPhrase(input: EscapeInput) {
   const h = input.hero.trim();
   const t = input.team.trim();
   if (h && t) return `Hoy la misión es para ${h} y su equipo, ${t}. `;
@@ -605,22 +688,6 @@ export function generateGame(raw: unknown): EscapeGame {
     prize: theme.prize,
     hintTokens: { facil: n, media: Math.ceil(n * 0.6), dificil: Math.ceil(n / 3) }[input.difficulty],
     minutesPerPuzzle: minutes,
-  };
-}
-
-/** Demo gratuita: tres acertijos cortos jugables en pantalla. */
-export function generateDemo(raw: unknown) {
-  const input = escapeSchema.parse(raw);
-  const theme = THEMES[input.theme];
-  const ctx = ctxFor(input, "demo");
-  const kinds = input.age === "peques" ? ["shapes", "riddle", "mirror"] : input.age === "ninos" ? ["riddle", "numbers", "anagram"] : ["riddle", "caesar", "sequence"];
-  const puzzles = kinds.map((k, i) => ({ ...GENERATORS[k](ctx), chapter: theme.chapters[i], reward: "" }));
-  return {
-    title: input.hero.trim() ? `${theme.title}: la aventura de ${input.hero.trim()}` : theme.title,
-    intro: theme.intro.replace("{heroe_frase}", heroPhrase(input)),
-    ending: theme.ending,
-    themeName: theme.name,
-    puzzles,
   };
 }
 
